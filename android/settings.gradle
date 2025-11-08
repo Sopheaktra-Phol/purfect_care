@@ -1,0 +1,37 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+
+    plugins {
+        id 'dev.flutter.flutter-gradle-plugin' version '1.0.0'
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'android'
+include ':app'
+
+def flutterProjectRoot = rootProject.projectDir.parentFile
+def plugins = new Properties()
+def pluginsFile = new File(flutterProjectRoot, '.flutter-plugins')
+if (pluginsFile.exists()) {
+    pluginsFile.withReader('UTF-8') { reader ->
+        plugins.load(reader)
+    }
+}
+
+plugins.each { name, path ->
+    def pluginDirectory = flutterProjectRoot.toPath().resolve(path).toFile()
+    include ":$name"
+    project(":$name").projectDir = pluginDirectory
+}

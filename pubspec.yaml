@@ -1,0 +1,42 @@
+name: pawfect_care
+description: A simple pet care manager app.
+version: 0.1.0
+publish_to: "none"
+
+environment:
+  sdk: ">=2.18.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.0.5
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  path_provider: ^2.0.14
+  image_picker: ^0.8.7+4
+  flutter_local_notifications: ^14.0.0
+  timezone: 0.9.4
+  intl: ^0.18.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.10.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/lottie/
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/purfect_care_icon.png"
+  android_adaptive_icon:
+    foreground_image: "assets/icons/purfect_care_icon.png"
+    background_image: "assets/icons/purfect_care_icon.png"
+    background_color: "#00000000"
+  remove_alpha_ios: true
