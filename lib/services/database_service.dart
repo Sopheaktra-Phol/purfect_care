@@ -3,10 +3,12 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/pet_model.dart';
 import '../models/reminder_model.dart';
+import '../models/health_record_model.dart';
 
 class DatabaseService {
   static const String petsBox = 'pets';
   static const String remindersBox = 'reminders';
+  static const String healthRecordsBox = 'health_records';
 
   static bool _initialized = false;
 
@@ -17,14 +19,17 @@ class DatabaseService {
     // register adapters
     Hive.registerAdapter(PetModelAdapter());
     Hive.registerAdapter(ReminderModelAdapter());
+    Hive.registerAdapter(HealthRecordModelAdapter());
     await Hive.openBox(petsBox);
     await Hive.openBox(remindersBox);
+    await Hive.openBox(healthRecordsBox);
     _initialized = true;
   }
 
   // Pets
   static Box get _pets => Hive.box(petsBox);
   static Box get _reminders => Hive.box(remindersBox);
+  static Box get _healthRecords => Hive.box(healthRecordsBox);
 
   static Future<int> addPet(PetModel pet) async {
     final key = await _pets.add(pet);
@@ -72,5 +77,26 @@ class DatabaseService {
 
   static Future<void> deleteReminder(int key) async {
     await _reminders.delete(key);
+  }
+
+  // Health Records
+  static Future<int> addHealthRecord(HealthRecordModel record) async {
+    final key = await _healthRecords.add(record);
+    record.id = key;
+    await _healthRecords.put(key, record);
+    return key;
+  }
+
+  static List<HealthRecordModel> getAllHealthRecords() {
+    return _healthRecords.values.cast<HealthRecordModel>().toList();
+  }
+
+  static Future<void> updateHealthRecord(int key, HealthRecordModel record) async {
+    record.id = key;
+    await _healthRecords.put(key, record);
+  }
+
+  static Future<void> deleteHealthRecord(int key) async {
+    await _healthRecords.delete(key);
   }
 }

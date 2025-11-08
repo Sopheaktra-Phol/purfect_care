@@ -6,6 +6,9 @@ import 'package:pawfect_care/providers/reminder_provider.dart';
 import 'package:pawfect_care/providers/pet_provider.dart';
 import 'package:pawfect_care/widgets/reminder_tile.dart';
 import 'package:pawfect_care/screens/add_reminder_screen.dart';
+import 'package:pawfect_care/screens/health_tracker_screen.dart';
+import 'package:pawfect_care/screens/activity_log_screen.dart';
+import 'add_pet_screen.dart';
 
 class PetDetailScreen extends StatelessWidget {
   final PetModel pet;
@@ -19,6 +22,13 @@ class PetDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(pet.name),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => AddPetScreen(pet: pet)),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.delete),
             onPressed: () async {
@@ -55,7 +65,29 @@ class PetDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const Text('Reminders', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => HealthTrackerScreen(pet: pet)),
+                ),
+                icon: const Icon(Icons.health_and_safety),
+                label: const Text('Health'),
+              ),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ActivityLogScreen()),
+                ),
+                icon: const Icon(Icons.list_alt),
+                label: const Text('Activity'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text('Upcoming Reminders', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           if (reminders.isEmpty) const Text('No reminders yet.'),
           ...reminders.map((r) => ReminderTile(reminder: r)),

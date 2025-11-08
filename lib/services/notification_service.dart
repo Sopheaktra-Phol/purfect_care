@@ -21,12 +21,13 @@ class NotificationService {
   }
 
   Future<int> scheduleNotification({
+    required String petName,
     required String title,
-    required String body,
     required DateTime scheduledDate,
     String repeat = 'none',
   }) async {
     final id = DateTime.now().millisecondsSinceEpoch.remainder(1 << 31);
+    final body = "It's time for ${petName}'s ${title.toLowerCase()} 🐶!";
     const androidDetails = AndroidNotificationDetails(
       'pawfect_channel',
       'Reminders',
@@ -48,12 +49,11 @@ class NotificationService {
         androidAllowWhileIdle: true,
       );
     } else if (repeat == 'daily') {
-      final tzDate = tz.TZDateTime.from(scheduledDate, tz.local);
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         id,
         title,
         body,
-        tz.TZDateTime(tz.local.name == tz.local.name ? tz.local : tz.local, tzDate.year, tzDate.month, tzDate.day, tzDate.hour, tzDate.minute),
+        tz.TZDateTime.from(scheduledDate, tz.local),
         details,
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
@@ -69,6 +69,17 @@ class NotificationService {
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+      );
+    } else if (repeat == 'monthly') {
+      await _flutterLocalNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        tz.TZDateTime.from(scheduledDate, tz.local),
+        details,
+        androidAllowWhileIdle: true,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.dayOfMonthAndTime,
       );
     }
 

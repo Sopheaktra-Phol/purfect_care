@@ -1,33 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:pawfect_care/models/reminder_model.dart';
-import 'package:pawfect_care/providers/reminder_provider.dart';
-import 'package:pawfect_care/services/notification_service.dart';
+import 'package:provider/provider.dart';
 
-class ReminderTile extends StatelessWidget {
+import '../providers/pet_provider.dart';
+import '../providers/reminder_provider.dart';
+
+class ReminderTile extends StatefulWidget {
   final ReminderModel reminder;
   const ReminderTile({super.key, required this.reminder});
 
   @override
+  State<ReminderTile> createState() => _ReminderTileState();
+}
+
+class _ReminderTileState extends State<ReminderTile> {
+  @override
   Widget build(BuildContext context) {
+    final pet = context.read<PetProvider>().pets.firstWhere((p) => p.id == widget.reminder.petId);
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
-        title: Text(reminder.title),
-        subtitle: Text('${DateFormat.yMd().add_jm().format(reminder.time)} • ${reminder.repeat}'),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: () async {
-            if (reminder.notificationId != null) {
-              await NotificationService().cancelNotification(reminder.notificationId!);
-            }
-            if (reminder.id != null) {
-              await context.read<ReminderProvider>().deleteReminder(reminder.id!);
-            }
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reminder deleted')));
+        leading: IconButton(
+          icon: Icon(
+            widget.reminder.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+            color: widget.reminder.isCompleted ? Colors.green : Colors.grey,
+          ),
+          onPressed: () {
+            final reminderProv = context.read<ReminderProvider>();
+            final updatedReminder = widget.reminder;
+            updatedReminder.isCompleted = !updatedReminder.isCompleted;
+            reminderProv.updateReminder(widget.reminder.id!, updatedReminder, pet);
           },
+        ),
+        title: Text(widget.reminder.title),
+        subtitle: Text(
+          'For: ${pet.name} at ${DateFormat.yMd().add_jm().format(widget.reminder.time)}',
         ),
       ),
     );
