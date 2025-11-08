@@ -27,9 +27,7 @@ class _ReminderTileState extends State<ReminderTile> {
           ),
           onPressed: () {
             final reminderProv = context.read<ReminderProvider>();
-            final updatedReminder = widget.reminder;
-            updatedReminder.isCompleted = !updatedReminder.isCompleted;
-            reminderProv.updateReminder(widget.reminder.id!, updatedReminder, pet);
+            reminderProv.toggleReminderStatus(widget.reminder.id!, !widget.reminder.isCompleted);
           },
         ),
         title: Text(widget.reminder.title),

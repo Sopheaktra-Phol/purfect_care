@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:pawfect_care/models/pet_model.dart';
 import 'package:pawfect_care/providers/pet_provider.dart';
 import 'package:pawfect_care/services/image_service.dart';
+import 'package:pawfect_care/services/breed_service.dart';
 
 class AddPetScreen extends StatefulWidget {
   final PetModel? pet;
@@ -25,6 +26,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
   String? notes;
 
   final ImageService _img = ImageService();
+  final BreedService _breedService = BreedService();
+
+  bool _isLoadingBreeds = false;
+  List<String> _breeds = [];
+  String? _error;
 
   @override
   void initState() {
@@ -37,6 +43,27 @@ class _AddPetScreenState extends State<AddPetScreen> {
       breed = widget.pet!.breed;
       photoPath = widget.pet!.photoPath;
       notes = widget.pet!.notes;
+    }
+    _fetchBreeds();
+  }
+
+  Future<void> _fetchBreeds() async {
+    setState(() {
+      _isLoadingBreeds = true;
+      _error = null;
+    });
+    try {
+      if (species == 'Dog') {
+        _breeds = await _breedService.getDogBreeds();
+      } else if (species == 'Cat') {
+        _breeds = await _breedService.getCatBreeds();
+      } else {
+        _breeds = [];
+      }
+    } catch (e) {
+      setState(() => _error = 'Failed to load breeds.');
+    } finally {
+      setState(() => _isLoadingBreeds = false);
     }
   }
 
@@ -75,9 +102,32 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   DropdownMenuItem(value: 'Cat', child: Text('Cat')),
                   DropdownMenuItem(value: 'Other', child: Text('Other')),
                 ],
-                onChanged: (v) => setState(() => species = v as String),
+                onChanged: (v) {
+                  setState(() {
+                    species = v as String;
+                    breed = '';
+                  });
+                  _fetchBreeds();
+                },
                 decoration: const InputDecoration(labelText: 'Species'),
               ),
+              if (_isLoadingBreeds)
+                const Center(child: CircularProgressIndicator())
+              else if (_error != null)
+                Text(_error!, style: const TextStyle(color: Colors.red))
+              else if (species == 'Dog' || species == 'Cat')
+                DropdownButtonFormField<String>(
+                  value: breed.isNotEmpty && _breeds.contains(breed) ? breed : null,
+                  items: _breeds.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+                  onChanged: (v) => setState(() => breed = v as String),
+                  decoration: const InputDecoration(labelText: 'Breed'),
+                )
+              else
+                TextFormField(
+                  initialValue: breed,
+                  decoration: const InputDecoration(labelText: 'Breed'),
+                  onSaved: (v) => breed = v ?? '',
+                ),
               DropdownButtonFormField(
                 value: gender,
                 items: const [
@@ -92,11 +142,6 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 decoration: const InputDecoration(labelText: 'Age'),
                 keyboardType: TextInputType.number,
                 onSaved: (v) => age = int.tryParse(v ?? '0') ?? 0,
-              ),
-              TextFormField(
-                initialValue: breed,
-                decoration: const InputDecoration(labelText: 'Breed'),
-                onSaved: (v) => breed = v ?? '',
               ),
               TextFormField(
                 initialValue: notes,

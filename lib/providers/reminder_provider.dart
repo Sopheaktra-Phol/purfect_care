@@ -49,4 +49,11 @@ class ReminderProvider extends ChangeNotifier {
     reminders.removeWhere((e) => e.id == id);
     notifyListeners();
   }
+
+  Future<void> toggleReminderStatus(int id, bool isCompleted) async {
+    final i = reminders.indexWhere((e) => e.id == id);
+    reminders[i].isCompleted = isCompleted;
+    await DatabaseService.updateReminder(id, reminders[i]);
+    notifyListeners();
+  }
 }
