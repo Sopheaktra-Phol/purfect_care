@@ -7,6 +7,7 @@ class ReminderModel {
   DateTime time;
   String repeat; // 'none' | 'daily' | 'weekly'
   int? notificationId;
+  bool isCompleted;
 
   ReminderModel({
     this.id,
@@ -15,6 +16,7 @@ class ReminderModel {
     required this.time,
     this.repeat = 'none',
     this.notificationId,
+    this.isCompleted = false,
   });
 }
 
@@ -33,6 +35,7 @@ class ReminderModelAdapter extends TypeAdapter<ReminderModel> {
       time: DateTime.parse(map['time'] as String),
       repeat: map['repeat'] as String,
       notificationId: map['notificationId'] as int?,
+      isCompleted: map['isCompleted'] as bool? ?? false,
     );
   }
 
@@ -45,6 +48,7 @@ class ReminderModelAdapter extends TypeAdapter<ReminderModel> {
       'time': obj.time.toIso8601String(),
       'repeat': obj.repeat,
       'notificationId': obj.notificationId,
+      'isCompleted': obj.isCompleted,
     });
   }
 }

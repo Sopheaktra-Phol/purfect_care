@@ -4,10 +4,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'providers/pet_provider.dart';
 import 'providers/reminder_provider.dart';
+import 'providers/health_record_provider.dart';
 import 'services/database_service.dart';
 import 'services/notification_service.dart';
 import 'screens/home_screen.dart';
-import 'utils/theme.dart';
+import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,10 +27,11 @@ class PawfectCare extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => PetProvider()..loadPets()),
         ChangeNotifierProvider(create: (_) => ReminderProvider()..loadReminders()),
+        ChangeNotifierProvider(create: (_) => HealthRecordProvider()..loadHealthRecords()),
       ],
       child: MaterialApp(
         title: 'Pawfect Care',
-        theme: AppTheme.light(),
+        theme: AppTheme.lightTheme(),
         home: const HomeScreen(),
       ),
     );
