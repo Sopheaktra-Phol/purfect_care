@@ -4,6 +4,9 @@ import '../services/database_service.dart';
 
 class HealthRecordProvider extends ChangeNotifier {
   List<HealthRecordModel> healthRecords = [];
+  bool _isLoading = false;
+
+  bool get isLoading => _isLoading;
 
   void loadHealthRecords() {
     healthRecords = DatabaseService.getAllHealthRecords();
@@ -20,8 +23,10 @@ class HealthRecordProvider extends ChangeNotifier {
   Future<void> updateHealthRecord(int id, HealthRecordModel record) async {
     await DatabaseService.updateHealthRecord(id, record);
     final i = healthRecords.indexWhere((e) => e.id == id);
-    healthRecords[i] = record;
-    notifyListeners();
+    if (i >= 0) {
+      healthRecords[i] = record;
+      notifyListeners();
+    }
   }
 
   Future<void> deleteHealthRecord(int id) async {

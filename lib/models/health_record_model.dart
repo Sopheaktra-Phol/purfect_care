@@ -39,7 +39,7 @@ class HealthRecordModelAdapter extends TypeAdapter<HealthRecordModel> {
       'id': obj.id,
       'petId': obj.petId,
       'title': obj.title,
-      'date': obj.date.toIso8  01String(),
+      'date': obj.date.toIso8601String(),
       'notes': obj.notes,
     });
   }

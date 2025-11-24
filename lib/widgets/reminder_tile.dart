@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pawfect_care/models/reminder_model.dart';
+import 'package:purfect_care/models/reminder_model.dart';
 import 'package:provider/provider.dart';
+import 'package:collection/collection.dart';
 
 import '../providers/pet_provider.dart';
 import '../providers/reminder_provider.dart';
@@ -17,7 +18,31 @@ class ReminderTile extends StatefulWidget {
 class _ReminderTileState extends State<ReminderTile> {
   @override
   Widget build(BuildContext context) {
-    final pet = context.read<PetProvider>().pets.firstWhere((p) => p.id == widget.reminder.petId);
+    final pets = context.read<PetProvider>().pets;
+    final pet = pets.firstWhereOrNull((p) => p.id == widget.reminder.petId);
+    
+    // Handle case where pet is not found (e.g., pet was deleted but reminder still exists)
+    if (pet == null) {
+      return Card(
+        child: ListTile(
+          leading: const Icon(Icons.warning, color: Colors.orange),
+          title: Text(widget.reminder.title),
+          subtitle: Text(
+            'Pet not found • ${DateFormat.yMd().add_jm().format(widget.reminder.time)}',
+            style: const TextStyle(color: Colors.grey),
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              if (widget.reminder.id != null) {
+                context.read<ReminderProvider>().deleteReminder(widget.reminder.id!);
+              }
+            },
+          ),
+        ),
+      );
+    }
+    
     return Card(
       child: ListTile(
         leading: IconButton(
@@ -27,8 +52,16 @@ class _ReminderTileState extends State<ReminderTile> {
           ),
           onPressed: () {
             final reminderProv = context.read<ReminderProvider>();
-            final updatedReminder = widget.reminder;
-            updatedReminder.isCompleted = !updatedReminder.isCompleted;
+            // Create a new instance instead of mutating the original
+            final updatedReminder = ReminderModel(
+              id: widget.reminder.id,
+              petId: widget.reminder.petId,
+              title: widget.reminder.title,
+              time: widget.reminder.time,
+              repeat: widget.reminder.repeat,
+              notificationId: widget.reminder.notificationId,
+              isCompleted: !widget.reminder.isCompleted,
+            );
             reminderProv.updateReminder(widget.reminder.id!, updatedReminder, pet);
           },
         ),

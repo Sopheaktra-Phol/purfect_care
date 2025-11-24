@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "126123056507",
+    "project_id": "purfect-care",
+    "storage_bucket": "purfect-care.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:126123056507:android:b8ceacbeb25728f79cb1de",
+        "android_client_info": {
+          "package_name": "com.example.pawfect_care"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4w46a-JRaRwLt_v2gct95LAGrYFYC0vE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:126123056507:android:764e3160d4b8b0a99cb1de",
+        "android_client_info": {
+          "package_name": "com.example.purfect_care"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4w46a-JRaRwLt_v2gct95LAGrYFYC0vE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

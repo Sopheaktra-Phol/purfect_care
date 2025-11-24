@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:pawfect_care/models/pet_model.dart';
-import 'package:pawfect_care/models/health_record_model.dart';
-import 'package:pawfect_care/providers/health_record_provider.dart';
+import 'package:purfect_care/models/pet_model.dart';
+import 'package:purfect_care/models/health_record_model.dart';
+import 'package:purfect_care/providers/health_record_provider.dart';
 
 class AddHealthRecordScreen extends StatefulWidget {
   final PetModel pet;

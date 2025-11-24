@@ -1,4 +1,4 @@
-package com.example.pawfect_care
+package com.example.purfect_care
 
 import io.flutter.embedding.android.FlutterActivity
 
