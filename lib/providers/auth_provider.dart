@@ -58,10 +58,10 @@ class AuthProvider extends ChangeNotifier {
     final emailError = EmailValidator.validateEmail(email);
     if (emailError != null) {
       _errorMessage = emailError;
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
 
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
@@ -97,10 +97,10 @@ class AuthProvider extends ChangeNotifier {
     final emailError = EmailValidator.validateEmail(email);
     if (emailError != null) {
       _errorMessage = emailError;
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
 
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
@@ -166,9 +166,9 @@ class AuthProvider extends ChangeNotifier {
     );
     
     await _saveLoginState(true, email: null, isAnonymous: true);
-    _isLoading = false;
-    notifyListeners();
-    return true;
+        _isLoading = false;
+        notifyListeners();
+        return true;
   }
 
   Future<void> signOut() async {

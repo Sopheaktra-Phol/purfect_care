@@ -18,6 +18,96 @@ class AddReminderScreen extends StatefulWidget {
 
 class _AddReminderScreenState extends State<AddReminderScreen> {
   final _form = GlobalKey<FormState>();
+  
+  void _showSuccessDialog(BuildContext context, {required String title, required String message, required IconData icon}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Success icon with animated background
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2E8771).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: 48,
+                  color: const Color(0xFF2E8771),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Title
+              Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              // Message
+              Text(
+                message,
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16,
+                  color: Colors.grey[700],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              // OK Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close dialog
+                    Navigator.pop(context); // Close add reminder screen
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFB930B),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Got it!',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
   String title = 'Feed';
   String customTitle = '';
   DateTime dateTime = DateTime.now().add(const Duration(hours: 1));
@@ -31,7 +121,7 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
       // Check if it's a custom title (not in the standard list)
       final standardTitles = ['Feed', 'Walk', 'Vet', 'Groom'];
       if (standardTitles.contains(widget.reminder!.title)) {
-        title = widget.reminder!.title;
+      title = widget.reminder!.title;
       } else {
         title = 'Custom';
         customTitle = widget.reminder!.title;
@@ -104,10 +194,10 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
                   ),
                 );
                 if (confirmed == true && mounted) {
-                  final provider = context.read<ReminderProvider>();
-                  await provider.deleteReminder(widget.reminder!.id!);
-                  if (!mounted) return;
-                  Navigator.pop(context);
+                final provider = context.read<ReminderProvider>();
+                await provider.deleteReminder(widget.reminder!.id!);
+                if (!mounted) return;
+                Navigator.pop(context);
                 }
               },
             ),
@@ -224,7 +314,7 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
                       ],
                     ),
                   ),
-                ),
+              ),
               ),
               const SizedBox(height: 16),
               // Repeat Interval Dropdown
@@ -257,78 +347,6 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
                 onChanged: (v) => setState(() => repeat = v as String),
               ),
               const SizedBox(height: 16),
-              // Test Notification Button (for debugging)
-              if (widget.reminder == null)
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final reminderTitle = title == 'Custom' ? customTitle : title;
-                    if (reminderTitle.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please select a task type first'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                      return;
-                    }
-                    
-                    // Request permissions first
-                    final notificationService = NotificationService();
-                    final hasPermission = await notificationService.areNotificationsEnabled();
-                    if (!hasPermission) {
-                      final granted = await notificationService.requestPermissions();
-                      if (!granted) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Notification permission denied. Please enable in Settings.'),
-                              duration: Duration(seconds: 3),
-                            ),
-                          );
-                        }
-                        return;
-                      }
-                    }
-                    
-                    // Show immediate notification
-                    try {
-                      await notificationService.showImmediateNotification(
-                        petName: widget.pet.name,
-                        title: reminderTitle,
-                      );
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Test notification sent! Check your notification tray.'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error: $e'),
-                            duration: const Duration(seconds: 3),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  icon: const Icon(Icons.notifications_active),
-                  label: const Text(
-                    'Test Notification',
-                    style: TextStyle(fontFamily: 'Poppins'),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    side: BorderSide(color: Colors.grey[300]!, width: 1.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 16),
               // Save Button
               ElevatedButton(
                 onPressed: () async {
@@ -348,26 +366,24 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
                   if (widget.reminder == null) {
                     await provider.addReminder(r, widget.pet);
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Reminder saved! Notification scheduled for ${DateFormat.yMd().add_jm().format(dateTime)}'),
-                          duration: const Duration(seconds: 3),
-                        ),
+                      _showSuccessDialog(
+                        context,
+                        title: 'Task Created!',
+                        message: 'Your reminder has been scheduled for ${DateFormat.yMd().add_jm().format(dateTime)}',
+                        icon: Icons.check_circle,
                       );
                     }
                   } else {
                     await provider.updateReminder(widget.reminder!.id!, r, widget.pet);
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Reminder updated!'),
-                          duration: Duration(seconds: 2),
-                        ),
+                      _showSuccessDialog(
+                        context,
+                        title: 'Task Updated!',
+                        message: 'Your reminder has been updated successfully',
+                        icon: Icons.check_circle,
                       );
                     }
                   }
-                  if (!mounted) return;
-                  Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFB930B), // Orange

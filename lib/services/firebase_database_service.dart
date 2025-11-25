@@ -129,7 +129,7 @@ class FirebaseDatabaseService {
         print('Firebase Auth Error Code: ${e.code}');
         print('Firebase Auth Error Message: ${e.message}');
       } else {
-        print('Error signing in: $e');
+      print('Error signing in: $e');
       }
       // Re-throw the exception so it can be handled by the auth provider
       rethrow;
@@ -161,7 +161,7 @@ class FirebaseDatabaseService {
         print('Firebase Auth Error Code: ${e.code}');
         print('Firebase Auth Error Message: ${e.message}');
       } else {
-        print('Error creating account: $e');
+      print('Error creating account: $e');
       }
       // Re-throw the exception so it can be handled by the auth provider
       rethrow;
@@ -187,7 +187,7 @@ class FirebaseDatabaseService {
 
       if (googleUser == null) {
         // User canceled the sign-in
-        return null;
+      return null;
       }
 
       // Obtain the auth details from the request

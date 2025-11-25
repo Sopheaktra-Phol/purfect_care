@@ -1,5 +1,4 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tzdata;
 
@@ -141,11 +140,14 @@ class NotificationService {
         enableVibration: true,
         playSound: true,
         showWhen: true,
+        autoCancel: true,
+        ongoing: false,
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
+        interruptionLevel: InterruptionLevel.active,
       );
       final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
 
@@ -154,49 +156,63 @@ class NotificationService {
       
       // Ensure the scheduled time is in the future
       final now = tz.TZDateTime.now(tz.local);
+      tz.TZDateTime scheduleTime = scheduledTZ;
+      
       if (scheduledTZ.isBefore(now)) {
-        print('Warning: Scheduled time is in the past. Adjusting to 1 minute from now.');
-        // For testing, schedule 1 minute from now if past time
-        final adjustedTime = now.add(const Duration(minutes: 1));
-        if (repeat == 'none') {
-          await _flutterLocalNotificationsPlugin.zonedSchedule(
-            id,
-            title,
-            body,
-            adjustedTime,
-            details,
-            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-          );
-          print('Notification scheduled (adjusted): ID=$id, Time=${adjustedTime.toString()}');
-        } else {
-          // For repeating notifications, still use the original scheduled time
-          await _scheduleRepeating(id, title, body, scheduledTZ, details, repeat);
-        }
+        print('⚠ Warning: Scheduled time is in the past. Adjusting to 10 seconds from now for testing.');
+        // For testing, schedule 10 seconds from now if past time
+        scheduleTime = now.add(const Duration(seconds: 10));
+      }
+      
+      print('=== Scheduling Notification ===');
+      print('ID: $id');
+      print('Title: $title');
+      print('Body: $body');
+      print('Scheduled time: ${scheduleTime.toString()}');
+      print('Current time: ${now.toString()}');
+      print('Repeat: $repeat');
+      
+      if (repeat == 'none') {
+        await _flutterLocalNotificationsPlugin.zonedSchedule(
+          id,
+          title,
+          body,
+          scheduleTime,
+          details,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        );
+        print('✓ One-time notification scheduled');
       } else {
-        if (repeat == 'none') {
-          await _flutterLocalNotificationsPlugin.zonedSchedule(
-            id,
-            title,
-            body,
-            scheduledTZ,
-            details,
-            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-          );
-          print('Notification scheduled: ID=$id, Time=${scheduledTZ.toString()}, Body=$body');
-        } else {
-          await _scheduleRepeating(id, title, body, scheduledTZ, details, repeat);
-          print('Repeating notification scheduled: ID=$id, Time=${scheduledTZ.toString()}, Repeat=$repeat');
-        }
+        await _scheduleRepeating(id, title, body, scheduleTime, details, repeat);
+        print('✓ Repeating notification scheduled');
       }
 
       // Verify notification was scheduled
+      await Future.delayed(const Duration(milliseconds: 500)); // Wait a bit for system to register
       final pending = await _flutterLocalNotificationsPlugin.pendingNotificationRequests();
+      print('=== Notification Scheduling Verification ===');
       print('Total pending notifications: ${pending.length}');
       final thisNotification = pending.where((n) => n.id == id).toList();
       if (thisNotification.isNotEmpty) {
-        print('✓ Notification confirmed in pending list: ${thisNotification.first.title}');
+        print('✓ Notification confirmed in pending list');
+        print('  - ID: ${thisNotification.first.id}');
+        print('  - Title: ${thisNotification.first.title}');
+        print('  - Body: ${thisNotification.first.body}');
+        print('  - Scheduled for: ${thisNotification.first.payload}');
       } else {
-        print('⚠ Warning: Notification not found in pending list!');
+        print('⚠ WARNING: Notification not found in pending list!');
+        print('  This means the notification may not fire.');
+        print('  Scheduled ID: $id');
+        print('  Scheduled time: ${scheduleTime.toString()}');
+        print('  Current time: ${now.toString()}');
+      }
+      
+      // List all pending notifications for debugging
+      if (pending.isNotEmpty) {
+        print('\nAll pending notifications:');
+        for (var notif in pending) {
+          print('  - ID: ${notif.id}, Title: ${notif.title}');
+        }
       }
 
       return id;
@@ -439,11 +455,14 @@ class NotificationService {
         enableVibration: true,
         playSound: true,
         showWhen: true,
+        autoCancel: true,
+        ongoing: false,
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
+        interruptionLevel: InterruptionLevel.active,
       );
       final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
 

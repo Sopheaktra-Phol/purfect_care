@@ -23,13 +23,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Request notification permissions when home screen loads
+    // Request notification permissions and reschedule notifications when home screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final notificationService = NotificationService();
       final hasPermission = await notificationService.areNotificationsEnabled();
       if (!hasPermission) {
         print('Requesting notification permissions from HomeScreen...');
         await notificationService.requestPermissions();
+      }
+      
+      // Reschedule all notifications to ensure they're active
+      final petProv = context.read<PetProvider>();
+      final reminderProv = context.read<ReminderProvider>();
+      if (petProv.pets.isNotEmpty && reminderProv.reminders.isNotEmpty) {
+        await reminderProv.rescheduleAllNotifications(petProv.pets);
       }
     });
   }
@@ -38,7 +45,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final petProv = context.watch<PetProvider>();
     final reminderProv = context.watch<ReminderProvider>();
-    final upcomingReminders = reminderProv.reminders.where((r) => r.time.isAfter(DateTime.now())).toList();
+    final now = DateTime.now();
+    // Get only incomplete upcoming reminders
+    final upcomingReminders = reminderProv.reminders.where((r) => 
+      !r.isCompleted && r.time.isAfter(now)
+    ).toList();
     upcomingReminders.sort((a, b) => a.time.compareTo(b.time));
     final nextReminder = upcomingReminders.isNotEmpty ? upcomingReminders.first : null;
     final todaysReminders = reminderProv.reminders.where((r) {
@@ -112,9 +123,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 48.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                         Text(
                           'No pets yet.',
                           style: TextStyle(
@@ -124,8 +135,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddPetScreen())),
+                      ElevatedButton(
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddPetScreen())),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFB930B), // Orange
                             foregroundColor: Colors.white,
@@ -144,8 +155,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
-                      ],
+                      ),
+                    ],
                     ),
                   ),
                 )

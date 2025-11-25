@@ -14,6 +14,61 @@ class ReminderProvider extends ChangeNotifier {
     reminders = DatabaseService.getAllReminders();
     notifyListeners();
   }
+  
+  // Reschedule all notifications - call this with pets list from outside
+  Future<void> rescheduleAllNotifications(List<PetModel> pets) async {
+    final notificationService = NotificationService();
+    final hasPermission = await notificationService.areNotificationsEnabled();
+    if (!hasPermission) {
+      print('⚠ Cannot reschedule notifications: permissions not granted');
+      return;
+    }
+    
+    print('=== Rescheduling all notifications ===');
+    int rescheduled = 0;
+    
+    for (var reminder in reminders) {
+      // Only reschedule if reminder is not completed and time is in the future
+      if (!reminder.isCompleted) {
+        PetModel? pet;
+        try {
+          pet = pets.firstWhere((p) => p.id == reminder.petId);
+        } catch (e) {
+          // Pet not found, skip this reminder
+          continue;
+        }
+        
+        if (pet != null) {
+          try {
+            // Cancel old notification if exists
+            if (reminder.notificationId != null) {
+              await notificationService.cancelNotification(reminder.notificationId!);
+            }
+            
+            // Reschedule if time is in the future
+            final now = DateTime.now();
+            if (reminder.time.isAfter(now)) {
+              final newNotificationId = await notificationService.scheduleNotification(
+                petName: pet.name,
+                title: reminder.title,
+                scheduledDate: reminder.time,
+                repeat: reminder.repeat,
+              );
+              reminder.notificationId = newNotificationId;
+              await DatabaseService.updateReminder(reminder.id!, reminder);
+              rescheduled++;
+              print('✓ Rescheduled: ${reminder.title} for ${pet.name}');
+            }
+          } catch (e) {
+            print('Error rescheduling notification for reminder ${reminder.id}: $e');
+          }
+        }
+      }
+    }
+    
+    print('✓ Rescheduled $rescheduled notifications');
+    notifyListeners();
+  }
 
   Future<void> addReminder(ReminderModel r, PetModel pet) async {
     // Ensure permissions are granted
@@ -25,12 +80,12 @@ class ReminderProvider extends ChangeNotifier {
     
     try {
       final notificationId = await notificationService.scheduleNotification(
-        petName: pet.name,
-        title: r.title,
-        scheduledDate: r.time,
-        repeat: r.repeat,
-      );
-      r.notificationId = notificationId;
+      petName: pet.name,
+      title: r.title,
+      scheduledDate: r.time,
+      repeat: r.repeat,
+    );
+    r.notificationId = notificationId;
       final id = await DatabaseService.addReminder(r);
       r.id = id;
       reminders.add(r);
@@ -39,9 +94,9 @@ class ReminderProvider extends ChangeNotifier {
       print('Error adding reminder notification: $e');
       // Still save the reminder even if notification fails
       final id = await DatabaseService.addReminder(r);
-      r.id = id;
-      reminders.add(r);
-      notifyListeners();
+    r.id = id;
+    reminders.add(r);
+    notifyListeners();
     }
   }
 
@@ -60,12 +115,12 @@ class ReminderProvider extends ChangeNotifier {
     
     try {
       final notificationId = await notificationService.scheduleNotification(
-        petName: pet.name,
-        title: r.title,
-        scheduledDate: r.time,
-        repeat: r.repeat,
-      );
-      r.notificationId = notificationId;
+      petName: pet.name,
+      title: r.title,
+      scheduledDate: r.time,
+      repeat: r.repeat,
+    );
+    r.notificationId = notificationId;
       await DatabaseService.updateReminder(id, r);
       final i = reminders.indexWhere((e) => e.id == id);
       if (i >= 0) {
@@ -76,10 +131,10 @@ class ReminderProvider extends ChangeNotifier {
       print('Error updating reminder notification: $e');
       // Still update the reminder even if notification fails
       await DatabaseService.updateReminder(id, r);
-      final i = reminders.indexWhere((e) => e.id == id);
+    final i = reminders.indexWhere((e) => e.id == id);
       if (i >= 0) {
-        reminders[i] = r;
-        notifyListeners();
+    reminders[i] = r;
+    notifyListeners();
       }
     }
   }

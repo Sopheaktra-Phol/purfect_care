@@ -119,7 +119,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Form(
-        key: _form,
+          key: _form,
         child: CustomScrollView(
           slivers: [
             // Large photo at top
@@ -129,23 +129,23 @@ class _AddPetScreenState extends State<AddPetScreen> {
               expandedHeight: 350,
               flexibleSpace: FlexibleSpaceBar(
                 background: GestureDetector(
-                  onTap: () async {
-                    if (widget.pet != null && photoPath != null && photoPath != widget.pet!.photoPath) {
-                      await _img.deleteImage(photoPath);
+                onTap: () async {
+                  if (widget.pet != null && photoPath != null && photoPath != widget.pet!.photoPath) {
+                    await _img.deleteImage(photoPath);
+                  }
+                  final f = await _img.pickImageFromGallery();
+                  if (f != null) {
+                    if (widget.pet != null && widget.pet!.photoPath != null && widget.pet!.photoPath != f.path) {
+                      await _img.deleteImage(widget.pet!.photoPath);
                     }
-                    final f = await _img.pickImageFromGallery();
-                    if (f != null) {
-                      if (widget.pet != null && widget.pet!.photoPath != null && widget.pet!.photoPath != f.path) {
-                        await _img.deleteImage(widget.pet!.photoPath);
-                      }
-                      setState(() => photoPath = f.path);
-                    }
-                  },
+                    setState(() => photoPath = f.path);
+                  }
+                },
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
                       SafeImage(
-                        imagePath: photoPath,
+                  imagePath: photoPath,
                         fit: BoxFit.cover,
                         placeholder: Container(
                           color: Colors.grey[300],
@@ -153,8 +153,8 @@ class _AddPetScreenState extends State<AddPetScreen> {
                             Icons.pets,
                             size: 100,
                             color: Colors.grey,
-                          ),
-                        ),
+                ),
+              ),
                       ),
                       // Overlay with "Tap to add photo" text
                       Container(
@@ -173,7 +173,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                   fontSize: 16,
                                 ),
                               ),
-                            ],
+                ],
                           ),
                         ),
                       ),
@@ -197,7 +197,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     children: [
                       // Profile Header with Name, Breed, and Gender
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(24),
@@ -211,7 +211,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Name field
-                                  TextFormField(
+              TextFormField(
                                     initialValue: name,
                                     style: const TextStyle(
                                       fontFamily: 'Poppins',
@@ -228,49 +228,49 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                         color: Colors.grey,
                                       ),
                                       border: InputBorder.none,
-                                      contentPadding: EdgeInsets.zero,
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                                     ),
                                     onSaved: (v) => name = v?.trim() ?? '',
                                     validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
-                                  ),
-                                  const SizedBox(height: 8),
+              ),
+                                  const SizedBox(height: 12),
                                   // Breed field
-                                  Autocomplete<String>(
-                                    optionsBuilder: (TextEditingValue textEditingValue) {
-                                      if (textEditingValue.text.isEmpty) {
-                                        return _availableBreeds.take(10);
-                                      }
-                                      final filtered = _breedApi.filterBreeds(
-                                        _availableBreeds,
-                                        textEditingValue.text,
-                                      );
-                                      return filtered.take(20);
-                                    },
-                                    onSelected: (String selection) {
-                                      _breedController.text = selection;
-                                      breed = selection;
-                                    },
-                                    fieldViewBuilder: (
-                                      BuildContext context,
-                                      TextEditingController textEditingController,
-                                      FocusNode focusNode,
-                                      VoidCallback onFieldSubmitted,
-                                    ) {
-                                      if (_breedController.text.isNotEmpty && 
-                                          textEditingController.text != _breedController.text) {
-                                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                                          textEditingController.text = _breedController.text;
-                                        });
-                                      }
-                                      return TextFormField(
-                                        controller: textEditingController,
-                                        focusNode: focusNode,
+              Autocomplete<String>(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text.isEmpty) {
+                    return _availableBreeds.take(10);
+                  }
+                  final filtered = _breedApi.filterBreeds(
+                    _availableBreeds,
+                    textEditingValue.text,
+                  );
+                  return filtered.take(20);
+                },
+                onSelected: (String selection) {
+                  _breedController.text = selection;
+                  breed = selection;
+                },
+                fieldViewBuilder: (
+                  BuildContext context,
+                  TextEditingController textEditingController,
+                  FocusNode focusNode,
+                  VoidCallback onFieldSubmitted,
+                ) {
+                  if (_breedController.text.isNotEmpty && 
+                      textEditingController.text != _breedController.text) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      textEditingController.text = _breedController.text;
+                    });
+                  }
+                  return TextFormField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
                                         style: const TextStyle(
                                           fontFamily: 'Poppins',
                                           fontSize: 18,
                                           color: Colors.black,
                                         ),
-                                        decoration: InputDecoration(
+                    decoration: InputDecoration(
                                           hintText: 'Breed',
                                           hintStyle: TextStyle(
                                             fontFamily: 'Poppins',
@@ -278,64 +278,64 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                             color: Colors.grey[600],
                                           ),
                                           border: InputBorder.none,
-                                          contentPadding: EdgeInsets.zero,
-                                          suffixIcon: _isLoadingBreeds
-                                              ? const SizedBox(
-                                                  width: 20,
-                                                  height: 20,
-                                                  child: Padding(
-                                                    padding: EdgeInsets.all(12.0),
-                                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                                  ),
-                                                )
-                                              : null,
-                                        ),
-                                        onChanged: (value) {
-                                          breed = value;
-                                          _breedController.text = value;
-                                        },
-                                        onSaved: (v) => breed = v ?? '',
-                                      );
-                                    },
-                                    optionsViewBuilder: (
-                                      BuildContext context,
-                                      AutocompleteOnSelected<String> onSelected,
-                                      Iterable<String> options,
-                                    ) {
-                                      return Align(
-                                        alignment: Alignment.topLeft,
-                                        child: Material(
-                                          elevation: 4.0,
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                      suffixIcon: _isLoadingBreeds
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Padding(
+                                padding: EdgeInsets.all(12.0),
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            )
+                          : null,
+                    ),
+                    onChanged: (value) {
+                      breed = value;
+                      _breedController.text = value;
+                    },
+                    onSaved: (v) => breed = v ?? '',
+                  );
+                },
+                optionsViewBuilder: (
+                  BuildContext context,
+                  AutocompleteOnSelected<String> onSelected,
+                  Iterable<String> options,
+                ) {
+                  return Align(
+                    alignment: Alignment.topLeft,
+                    child: Material(
+                      elevation: 4.0,
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(12),
                                           ),
-                                          child: ConstrainedBox(
-                                            constraints: const BoxConstraints(maxHeight: 200),
-                                            child: ListView.builder(
-                                              padding: EdgeInsets.zero,
-                                              shrinkWrap: true,
-                                              itemCount: options.length,
-                                              itemBuilder: (BuildContext context, int index) {
-                                                final String option = options.elementAt(index);
-                                                return InkWell(
-                                                  onTap: () => onSelected(option),
-                                                  child: Padding(
-                                                    padding: const EdgeInsets.all(16.0),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxHeight: 200),
+                        child: ListView.builder(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          itemCount: options.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final String option = options.elementAt(index);
+                            return InkWell(
+                              onTap: () => onSelected(option),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
                                                     child: Text(
                                                       option,
                                                       style: const TextStyle(
                                                         fontFamily: 'Poppins',
                                                       ),
                                                     ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
                                 ],
                               ),
                             ),
@@ -386,7 +386,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                         ],
                       ),
                       
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       
                       // Stats boxes (Age, Weight, Height, Color)
                       Row(
@@ -411,7 +411,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                     color: Colors.grey,
                                   ),
                                   border: InputBorder.none,
-                                  contentPadding: EdgeInsets.zero,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 ),
                                 textAlign: TextAlign.center,
                                 onSaved: (v) => age = int.tryParse(v ?? '0') ?? 0,
@@ -439,7 +439,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                     color: Colors.grey,
                                   ),
                                   border: InputBorder.none,
-                                  contentPadding: EdgeInsets.zero,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 ),
                                 textAlign: TextAlign.center,
                                 onSaved: (v) => weight = v ?? '',
@@ -467,7 +467,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                     color: Colors.grey,
                                   ),
                                   border: InputBorder.none,
-                                  contentPadding: EdgeInsets.zero,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 ),
                                 textAlign: TextAlign.center,
                                 onSaved: (v) => height = v ?? '',
@@ -494,7 +494,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                     color: Colors.grey,
                                   ),
                                   border: InputBorder.none,
-                                  contentPadding: EdgeInsets.zero,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 ),
                                 textAlign: TextAlign.center,
                                 onSaved: (v) => color = v ?? '',
@@ -504,10 +504,29 @@ class _AddPetScreenState extends State<AddPetScreen> {
                         ],
                       ),
                       
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
+                      
+                      // Personal Note Section
+                      Row(
+                        children: [
+                          const Icon(Icons.note, color: Colors.black, size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Personal Note',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 16),
                       
                       // Personal Note
-                      TextFormField(
+              TextFormField(
                         controller: _notesController,
                         maxLines: 3,
                         style: const TextStyle(
@@ -538,12 +557,31 @@ class _AddPetScreenState extends State<AddPetScreen> {
                           ),
                           contentPadding: const EdgeInsets.all(16),
                         ),
-                        onSaved: (v) => notes = v,
-                      ),
+                onSaved: (v) => notes = v,
+              ),
                       
                       const SizedBox(height: 32),
                       
-                      // Species dropdown (hidden but needed for form)
+                      // Species Section
+                      Row(
+                        children: [
+                          const Icon(Icons.category, color: Colors.black, size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Species',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      // Species dropdown
                       DropdownButtonFormField(
                         value: species,
                         items: const [
@@ -562,13 +600,33 @@ class _AddPetScreenState extends State<AddPetScreen> {
                             }
                           });
                         },
-                        decoration: const InputDecoration(
-                          labelText: 'Species',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                        decoration: InputDecoration(
+                          hintText: 'Select species',
+                          hintStyle: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
+                            color: Colors.grey[600],
                           ),
                           filled: true,
-                          fillColor: Color(0xFFF5F5F5),
+                          fillColor: const Color(0xFFF5F5F5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Color(0xFFFB930B), width: 2),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          color: Colors.black,
                         ),
                       ),
                       
@@ -577,12 +635,25 @@ class _AddPetScreenState extends State<AddPetScreen> {
                           padding: const EdgeInsets.only(top: 16),
                           child: TextFormField(
                             controller: _speciesOtherController,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
                             decoration: InputDecoration(
-                              labelText: 'Specify Species',
                               hintText: 'e.g., Bird, Rabbit, Hamster',
+                              hintStyle: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
                               filled: true,
                               fillColor: const Color(0xFFF5F5F5),
                               border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                              ),
+                              enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
                               ),
@@ -590,6 +661,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: const BorderSide(color: Color(0xFFFB930B), width: 2),
                               ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                             ),
                             onSaved: (v) {
                               if (v != null && v.trim().isNotEmpty) {
@@ -611,36 +683,36 @@ class _AddPetScreenState extends State<AddPetScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () async {
-                            if (!_form.currentState!.validate()) return;
-                            _form.currentState!.save();
-                            
-                            if (widget.pet != null && widget.pet!.photoPath != null && widget.pet!.photoPath != photoPath) {
-                              await _img.deleteImage(widget.pet!.photoPath);
-                            }
-                            
-                            final pet = PetModel(
-                              id: widget.pet?.id,
-                              name: name,
-                              species: species,
-                              gender: gender,
-                              age: age,
-                              breed: breed,
-                              photoPath: photoPath,
-                              notes: notes,
+                onPressed: () async {
+                  if (!_form.currentState!.validate()) return;
+                  _form.currentState!.save();
+                  
+                  if (widget.pet != null && widget.pet!.photoPath != null && widget.pet!.photoPath != photoPath) {
+                    await _img.deleteImage(widget.pet!.photoPath);
+                  }
+                  
+                  final pet = PetModel(
+                    id: widget.pet?.id,
+                    name: name,
+                    species: species,
+                    gender: gender,
+                    age: age,
+                    breed: breed,
+                    photoPath: photoPath,
+                    notes: notes,
                               weight: weight.isEmpty ? null : weight,
                               height: height.isEmpty ? null : height,
                               color: color.isEmpty ? null : color,
-                            );
-                            final provider = context.read<PetProvider>();
-                            if (widget.pet == null) {
-                              await provider.addPet(pet);
-                            } else {
-                              await provider.updatePet(widget.pet!.id!, pet);
-                            }
-                            if (!mounted) return;
-                            Navigator.pop(context, pet);
-                          },
+                  );
+                  final provider = context.read<PetProvider>();
+                  if (widget.pet == null) {
+                    await provider.addPet(pet);
+                  } else {
+                    await provider.updatePet(widget.pet!.id!, pet);
+                  }
+                  if (!mounted) return;
+                  Navigator.pop(context, pet);
+                },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFB930B), // Orange
                             foregroundColor: Colors.white,
@@ -660,10 +732,10 @@ class _AddPetScreenState extends State<AddPetScreen> {
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
+              ),
+            ],
+          ),
+        ),
               ),
             ),
           ],
@@ -686,7 +758,7 @@ class _StatBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFE8F5E9), // Light green background
         borderRadius: BorderRadius.circular(16),
@@ -699,10 +771,11 @@ class _StatBox extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'Poppins',
               fontSize: 12,
+              fontWeight: FontWeight.w600,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           child,
         ],
       ),

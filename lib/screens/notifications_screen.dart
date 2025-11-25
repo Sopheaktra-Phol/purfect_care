@@ -6,8 +6,14 @@ import 'package:purfect_care/providers/pet_provider.dart';
 import 'package:purfect_care/models/reminder_model.dart';
 import 'package:purfect_care/models/pet_model.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
+
+  @override
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
 
   // Helper to format time ago or scheduled time
   String _formatTimestamp(DateTime dateTime) {
@@ -74,6 +80,19 @@ class NotificationsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _onRefresh() async {
+    // Reload reminders from the provider
+    final reminderProv = context.read<ReminderProvider>();
+    final petProv = context.read<PetProvider>();
+    
+    // Reload both reminders and pets
+    reminderProv.loadReminders();
+    petProv.loadPets();
+    
+    // Wait a bit to show the refresh animation
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
   @override
   Widget build(BuildContext context) {
     final reminderProv = context.watch<ReminderProvider>();
@@ -120,70 +139,91 @@ class NotificationsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: pastReminders.isEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(48.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.notifications_none,
-                      size: 80,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'No notifications yet',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[700],
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        color: const Color(0xFFFB930B), // Orange color for refresh indicator
+        backgroundColor: Colors.white,
+        child: pastReminders.isEmpty
+            ? SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh even when empty
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height - 200, // Account for AppBar
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(48.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.notifications_none,
+                            size: 80,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'No notifications yet',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Notifications will appear here after\ntheir scheduled time has passed',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Pull down to refresh',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Notifications will appear here after\ntheir scheduled time has passed',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
+              )
+            : ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh
+                padding: const EdgeInsets.all(24.0),
+                itemCount: pastReminders.length,
+                itemBuilder: (context, index) {
+                  final reminder = pastReminders[index];
+                  PetModel? pet;
+                  try {
+                    pet = petProv.pets.firstWhere((p) => p.id == reminder.petId);
+                  } catch (e) {
+                    // Pet not found, skip this reminder
+                    return const SizedBox.shrink();
+                  }
+                  
+                  if (pet == null) return const SizedBox.shrink();
+                  
+                  final iconData = _getReminderIcon(reminder.title);
+                  
+                  return _NotificationTile(
+                    icon: iconData['icon'] as IconData,
+                    iconColor: iconData['color'] as Color,
+                    title: reminder.title,
+                    message: "It's time to ${reminder.title.toLowerCase()} ${pet.name}!",
+                    timestamp: _formatTimestamp(reminder.time),
+                    isUpcoming: false, // All shown notifications are past
+                    repeat: reminder.repeat,
+                  );
+                },
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(24.0),
-              itemCount: pastReminders.length,
-              itemBuilder: (context, index) {
-                final reminder = pastReminders[index];
-                PetModel? pet;
-                try {
-                  pet = petProv.pets.firstWhere((p) => p.id == reminder.petId);
-                } catch (e) {
-                  // Pet not found, skip this reminder
-                  return const SizedBox.shrink();
-                }
-                
-                if (pet == null) return const SizedBox.shrink();
-                
-                final iconData = _getReminderIcon(reminder.title);
-                
-                return _NotificationTile(
-                  icon: iconData['icon'] as IconData,
-                  iconColor: iconData['color'] as Color,
-                  title: reminder.title,
-                  message: "It's time to ${reminder.title.toLowerCase()} ${pet.name}!",
-                  timestamp: _formatTimestamp(reminder.time),
-                  isUpcoming: false, // All shown notifications are past
-                  repeat: reminder.repeat,
-                );
-              },
-            ),
+      ),
     );
   }
 }

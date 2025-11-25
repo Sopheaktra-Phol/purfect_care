@@ -105,7 +105,8 @@ class SafeCircleAvatar extends StatelessWidget {
             onBackgroundImageError: (exception, stackTrace) {
               // Image failed to load, will show child instead
             },
-            child: child,
+            // Don't show child overlay when image exists
+            child: null,
           );
         }
 

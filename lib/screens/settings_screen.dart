@@ -83,7 +83,7 @@ class SettingsScreen extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
               side: BorderSide(color: Colors.grey[200]!, width: 1),
-            ),
+              ),
             child: InkWell(
               onTap: () async {
                 final confirmed = await showDialog<bool>(

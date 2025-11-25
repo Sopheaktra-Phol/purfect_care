@@ -24,8 +24,8 @@ class HealthRecordProvider extends ChangeNotifier {
     await DatabaseService.updateHealthRecord(id, record);
     final i = healthRecords.indexWhere((e) => e.id == id);
     if (i >= 0) {
-      healthRecords[i] = record;
-      notifyListeners();
+    healthRecords[i] = record;
+    notifyListeners();
     }
   }
 

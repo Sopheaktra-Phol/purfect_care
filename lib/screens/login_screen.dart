@@ -155,14 +155,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     return Scaffold(
       backgroundColor: const Color(0xFFFEF9F5), // Light beige background - matching welcome screen
       body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                   // Login Image
                   Image.asset(
                     'assets/images/login.png',
@@ -171,49 +171,49 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.pets,
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.pets,
                           size: 90,
                           color: Color(0xFFFB930B),
-                        ),
+                      ),
                       );
                     },
-                  ),
+                    ),
                   const SizedBox(height: 12),
-                  
-                  // App Title
+                    
+                    // App Title
                   const Text(
-                    'Purfect Care',
+                      'Purfect Care',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 32,
-                      fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       color: Colors.black,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Your pet\'s best friend 🐾',
+                    const SizedBox(height: 8),
+                    Text(
+                      'Your pet\'s best friend 🐾',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 16,
                       color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 20),
 
                     // Login Form Card
@@ -483,11 +483,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ),
                     ),
                   ],
-                ),
               ),
             ),
           ),
         ),
+      ),
     );
   }
 }
