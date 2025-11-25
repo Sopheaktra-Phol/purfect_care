@@ -75,8 +75,9 @@ class BreedApiService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as List;
         final breeds = data
-            .map((breed) => breed['name'] as String)
+            .map((breed) => breed['name'] as String?)
             .where((name) => name != null)
+            .cast<String>()
             .toList();
         breeds.sort();
         _catBreeds = breeds;

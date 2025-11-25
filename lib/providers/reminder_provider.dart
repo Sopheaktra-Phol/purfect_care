@@ -30,7 +30,7 @@ class ReminderProvider extends ChangeNotifier {
     for (var reminder in reminders) {
       // Only reschedule if reminder is not completed and time is in the future
       if (!reminder.isCompleted) {
-        PetModel? pet;
+        PetModel pet;
         try {
           pet = pets.firstWhere((p) => p.id == reminder.petId);
         } catch (e) {
@@ -38,7 +38,7 @@ class ReminderProvider extends ChangeNotifier {
           continue;
         }
         
-        if (pet != null) {
+        {
           try {
             // Cancel old notification if exists
             if (reminder.notificationId != null) {

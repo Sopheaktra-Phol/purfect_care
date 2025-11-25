@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:purfect_care/providers/reminder_provider.dart';
 import 'package:purfect_care/providers/pet_provider.dart';
-import 'package:purfect_care/models/reminder_model.dart';
 import 'package:purfect_care/models/pet_model.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -200,15 +199,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 itemCount: pastReminders.length,
                 itemBuilder: (context, index) {
                   final reminder = pastReminders[index];
-                  PetModel? pet;
+                  PetModel pet;
                   try {
                     pet = petProv.pets.firstWhere((p) => p.id == reminder.petId);
                   } catch (e) {
                     // Pet not found, skip this reminder
                     return const SizedBox.shrink();
                   }
-                  
-                  if (pet == null) return const SizedBox.shrink();
                   
                   final iconData = _getReminderIcon(reminder.title);
                   

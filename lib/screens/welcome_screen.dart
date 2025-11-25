@@ -116,61 +116,76 @@ class _PetRibbonsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // Ribbon 1 - Pink (far left) - Grey tabby cat
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+        // Out-left strip - leftmost - Grey tabby cat
         _PetRibbon(
-          color: const Color(0xFFFFB6C1), // Pink
-          petBackgroundColor: const Color(0xFFFB930B), // Orange
+          color: const Color(0xFFF1BFC9), // #f1bfc9
+          leftOffset: -70,
+          topOffset: -100,
+          height: 320,
           petIcon: Icons.pets,
-          leftOffset: -60,
-          topOffset: 30,
+          petBackgroundColor: const Color(0xFFF8BE7A), // #f8be7a
+          petImageX: 45, // Center horizontally
+          petImageY: 265, // Moved up by 20
           delay: 0,
           animationController: animationController,
         ),
-
-        // Ribbon 2 - Lavender - Golden retriever
+        
+        // Strip to the left - Brown dog
         _PetRibbon(
-          color: const Color(0xFFE6E6FA), // Lavender
-          petBackgroundColor: const Color(0xFFADD8E6), // Light blue
+          color: const Color(0xFFD7C0DE), // #d7c0de
+          leftOffset: 40,
+          topOffset: -100,
+          height: 380,
           petIcon: Icons.pets,
-          leftOffset: -20,
-          topOffset: 50,
-          delay: 100,
+          petBackgroundColor: const Color(0xFFC0E3E7), // #c0e3e7
+          petImageX: 45, // Center horizontally
+          petImageY: 325, // Moved up by 20
+          delay: 0,
           animationController: animationController,
         ),
-
-        // Ribbon 3 - Orange (middle) - Brown rabbit
+        
+        // Strip 3 (middle) - Long - Brown and white rabbit
         _PetRibbon(
-          color: const Color(0xFFFB930B), // Orange
-          petBackgroundColor: const Color(0xFFF5DEB3), // Light beige
+          color: const Color(0xFFFDB568), // #fdb568
+          leftOffset: 150,
+          topOffset: -100,
+          height: 440,
           petIcon: Icons.pets,
-          leftOffset: 20,
-          topOffset: 70,
-          delay: 200,
+          petBackgroundColor: const Color(0xFFFBEAD2), // #fbead2
+          petImageX: 45, // Center horizontally
+          petImageY: 385, // Moved up by 20
+          delay: 0,
           animationController: animationController,
         ),
-
-        // Ribbon 4 - Light blue - Macaw parrot
+        
+        // Strip to the right - Blue and yellow macaw
         _PetRibbon(
-          color: const Color(0xFFADD8E6), // Light blue
-          petBackgroundColor: const Color(0xFFE6E6FA), // Lavender
+          color: const Color(0xFFBFE3E6), // #bfe3e6
+          leftOffset: 220,
+          topOffset: -100,
+          height: 320,
           petIcon: Icons.pets,
-          leftOffset: 60,
-          topOffset: 50,
-          delay: 300,
+          petBackgroundColor: const Color(0xFFD1C5DB), // #d1c5db
+          petImageX: 45, // Center horizontally
+          petImageY: 265, // Moved up by 20
+          delay: 0,
           animationController: animationController,
         ),
-
-        // Ribbon 5 - Pink (far right) - Tuxedo cat
+        
+        // Out-right strip - rightmost - Black and white tuxedo cat
         _PetRibbon(
-          color: const Color(0xFFFFB6C1), // Pink
-          petBackgroundColor: const Color(0xFFFB930B), // Orange
+          color: const Color(0xFFFFC0C0), // #ffc0c0
+          leftOffset: 295,
+          topOffset: -100,
+          height: 220,
           petIcon: Icons.pets,
-          leftOffset: 100,
-          topOffset: 30,
-          delay: 400,
+          petBackgroundColor: const Color(0xFFFCBD80), // #fcbd80
+          petImageX: 45, // Center horizontally
+          petImageY: 165, // Moved up by 20
+          delay: 0,
           animationController: animationController,
         ),
       ],
@@ -180,19 +195,25 @@ class _PetRibbonsSection extends StatelessWidget {
 
 class _PetRibbon extends StatelessWidget {
   final Color color;
-  final Color petBackgroundColor;
-  final IconData petIcon;
   final double leftOffset;
   final double topOffset;
+  final double height;
+  final IconData? petIcon;
+  final Color? petBackgroundColor;
+  final double? petImageX;
+  final double? petImageY;
   final int delay;
   final AnimationController animationController;
 
   const _PetRibbon({
     required this.color,
-    required this.petBackgroundColor,
-    required this.petIcon,
     required this.leftOffset,
     required this.topOffset,
+    required this.height,
+    this.petIcon,
+    this.petBackgroundColor,
+    this.petImageX,
+    this.petImageY,
     required this.delay,
     required this.animationController,
   });
@@ -208,32 +229,52 @@ class _PetRibbon extends StatelessWidget {
         return Positioned(
           left: leftOffset + (1 - animationValue) * -200,
           top: topOffset + (1 - animationValue) * -100,
-            child: Transform.rotate(
-            angle: -0.35, // Diagonal angle
-            child: Container(
-              width: 100,
-              height: 180,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(18),
-                border: Border(
-                  bottom: BorderSide(color: Colors.black.withOpacity(0.3), width: 2),
-                  right: BorderSide(color: Colors.black.withOpacity(0.3), width: 2),
+          child: Transform.rotate(
+            angle: -28 * 3.14159 / 180, // -28 degrees in radians (rotated more to the left)
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 90,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(60), // More rounded ends
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        offset: const Offset(0, 4),
+                        blurRadius: 12,
+                        spreadRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        offset: const Offset(0, 2),
+                        blurRadius: 6,
+                        spreadRadius: 0,
+                      ),
+                    ],
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        color,
+                        color.withOpacity(0.85),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-              child: Stack(
-                children: [
-                  // Pet circle
+                // Circular pet image at the end of the strip
+                if (petIcon != null && petBackgroundColor != null && petImageX != null && petImageY != null)
                   Positioned(
-                    left: 10,
-                    top: 30,
+                    left: petImageX! - 35, // Center the 70x70 circle
+                    top: petImageY! - 35,
                     child: Container(
                       width: 70,
                       height: 70,
                       decoration: BoxDecoration(
-                        color: petBackgroundColor,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.black, width: 2.5),
+                        color: petBackgroundColor,
                       ),
                       child: Icon(
                         petIcon,
@@ -242,8 +283,7 @@ class _PetRibbon extends StatelessWidget {
                       ),
                     ),
                   ),
-                ],
-              ),
+              ],
             ),
           ),
         );

@@ -11,7 +11,7 @@ import 'services/database_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/splash_screen.dart';
-import 'screens/welcome_screen.dart' show WelcomeScreen, isOnboardingCompleted, resetOnboarding;
+import 'screens/welcome_screen.dart' show WelcomeScreen;
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -131,24 +131,33 @@ class _AuthWrapperState extends State<AuthWrapper> {
         if (authProvider.isAuthenticated && currentUserId != null && currentUserId != _lastUserId) {
           _lastUserId = currentUserId;
           WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (!mounted) return;
             // Switch to user's data context
             await DatabaseService.switchUser(currentUserId);
             // Load data
+            if (!mounted) return;
             context.read<PetProvider>().loadPets();
+            if (!mounted) return;
             context.read<ReminderProvider>().loadReminders();
+            if (!mounted) return;
             context.read<HealthRecordProvider>().loadHealthRecords();
           });
         } else if (!authProvider.isAuthenticated && _lastUserId != null) {
           // Clear data when user logs out
           _lastUserId = null;
           WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (!mounted) return;
             await DatabaseService.clearCurrentUserData();
-            context.read<PetProvider>().pets.clear();
-            context.read<PetProvider>().notifyListeners();
-            context.read<ReminderProvider>().reminders.clear();
-            context.read<ReminderProvider>().notifyListeners();
-            context.read<HealthRecordProvider>().healthRecords.clear();
-            context.read<HealthRecordProvider>().notifyListeners();
+            if (!mounted) return;
+            final petProv = context.read<PetProvider>();
+            final reminderProv = context.read<ReminderProvider>();
+            final healthProv = context.read<HealthRecordProvider>();
+            petProv.pets.clear();
+            reminderProv.reminders.clear();
+            healthProv.healthRecords.clear();
+            petProv.loadPets();
+            reminderProv.loadReminders();
+            healthProv.loadHealthRecords();
           });
         }
         

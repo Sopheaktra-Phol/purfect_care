@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 import '../providers/reminder_provider.dart';
 import '../models/reminder_model.dart';

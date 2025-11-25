@@ -10,9 +10,7 @@ import 'package:purfect_care/widgets/safe_image.dart';
 import 'package:purfect_care/screens/add_reminder_screen.dart';
 import 'package:purfect_care/screens/health_tracker_screen.dart';
 import 'package:purfect_care/screens/today_tasks_screen.dart';
-import 'package:purfect_care/theme/app_theme.dart';
 import 'add_pet_screen.dart';
-import 'package:intl/intl.dart';
 
 class PetDetailScreen extends StatelessWidget {
   final PetModel pet;
@@ -398,47 +396,48 @@ class PetDetailScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Info cards - show all user-provided data
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _InfoCard(
+                  // Info cards - show all user-provided data in horizontal row
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFE5D4).withValues(alpha: 0.4), // Light peach background
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _InfoCard(
                           label: 'Age',
                           value: currentPet.age > 0 ? _formatAge(currentPet.age) : 'N/A',
+                          icon: Icons.cake,
+                          iconColor: const Color(0xFFFB930B), // Orange
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _InfoCard(
+                        _InfoCard(
                           label: 'Weight',
                           value: currentPet.weight != null && currentPet.weight!.isNotEmpty 
                               ? currentPet.weight! 
                               : 'N/A',
+                          icon: Icons.scale,
+                          iconColor: Colors.green,
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _InfoCard(
+                        _InfoCard(
                           label: 'Height',
                           value: currentPet.height != null && currentPet.height!.isNotEmpty 
                               ? currentPet.height! 
                               : 'N/A',
+                          icon: Icons.straighten,
+                          iconColor: Colors.blue,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _InfoCard(
-                          label: 'Color',
-                          value: currentPet.color != null && currentPet.color!.isNotEmpty 
-                              ? currentPet.color! 
+                        _InfoCard(
+                          label: 'Breed',
+                          value: currentPet.breed.isNotEmpty 
+                              ? currentPet.breed 
                               : 'N/A',
+                          icon: Icons.pets,
+                          iconColor: Colors.purple,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
                   // Bio text
@@ -741,33 +740,38 @@ class PetDetailScreen extends StatelessWidget {
 class _InfoCard extends StatelessWidget {
   final String label;
   final String value;
+  final IconData icon;
+  final Color iconColor;
 
   const _InfoCard({
     required this.label,
     required this.value,
+    required this.icon,
+    required this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9), // Light green background - matching add pet screen
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFC8E6C9), width: 1),
-      ),
+    return Expanded(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 12,
-              color: Colors.black87,
+          // Icon in white circular background
+          Container(
+            width: 56,
+            height: 56,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 28,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
+          // Value text (like "3.5 kg" in the design)
           Text(
             value,
             style: const TextStyle(
@@ -776,6 +780,7 @@ class _InfoCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: Colors.black,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -896,8 +901,6 @@ class _SwallowMenuButton extends StatefulWidget {
 
 class _SwallowMenuButtonState extends State<_SwallowMenuButton>
     with TickerProviderStateMixin {
-  bool _isMenuOpen = false;
-  bool _isPressed = false;
   late final AnimationController _transformController;
   late final AnimationController _scaleController;
   late final Animation<double> _transformAnimation;
@@ -947,7 +950,7 @@ class _SwallowMenuButtonState extends State<_SwallowMenuButton>
     final Size buttonSize = button.size;
 
     setState(() {
-      _isMenuOpen = true;
+      // Menu opened
     });
     _transformController.forward();
 
@@ -995,7 +998,7 @@ class _SwallowMenuButtonState extends State<_SwallowMenuButton>
     ).then((_) {
       if (mounted) {
         setState(() {
-          _isMenuOpen = false;
+          // Menu closed
         });
         _transformController.reverse();
       }
@@ -1006,16 +1009,13 @@ class _SwallowMenuButtonState extends State<_SwallowMenuButton>
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) {
-        setState(() => _isPressed = true);
         _scaleController.forward();
       },
       onTapUp: (_) {
-        setState(() => _isPressed = false);
         _scaleController.reverse();
         _showMenu(context);
       },
       onTapCancel: () {
-        setState(() => _isPressed = false);
         _scaleController.reverse();
       },
       child: AnimatedBuilder(
@@ -1139,7 +1139,6 @@ class _MenuButtonItem extends StatefulWidget {
 
 class _MenuButtonItemState extends State<_MenuButtonItem>
     with SingleTickerProviderStateMixin {
-  bool _isPressed = false;
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -1168,16 +1167,13 @@ class _MenuButtonItemState extends State<_MenuButtonItem>
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) {
-        setState(() => _isPressed = true);
         _controller.forward();
       },
       onTapUp: (_) {
-        setState(() => _isPressed = false);
         _controller.reverse();
         widget.onTap();
       },
       onTapCancel: () {
-        setState(() => _isPressed = false);
         _controller.reverse();
       },
       child: AnimatedBuilder(

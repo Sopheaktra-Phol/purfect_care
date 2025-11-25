@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:purfect_care/models/pet_model.dart';
 import 'package:purfect_care/models/reminder_model.dart';
 import 'package:purfect_care/providers/reminder_provider.dart';
-import 'package:purfect_care/services/notification_service.dart';
 
 class AddReminderScreen extends StatefulWidget {
   final PetModel pet;
