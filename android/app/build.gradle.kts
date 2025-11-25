@@ -2,15 +2,16 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.pawfect_care"
+    namespace = "com.example.purfect_care"
     compileSdk = 34 // Or flutter.compileSdkVersion if using Flutter constants
     ndkVersion = "25.1.8937393" // Or flutter.ndkVersion
 
     defaultConfig {
-        applicationId = "com.example.pawfect_care"
+        applicationId = "com.example.purfect_care"
         minSdk = flutter.minSdkVersion // Must be 21+ for flutter_local_notifications
         targetSdk = 34 // Or flutter.targetSdkVersion
         versionCode = 1
@@ -21,6 +22,19 @@ android {
         release {
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
+            isShrinkResources = false
+        }
+        debug {
+            // Optimize debug builds
+            isMinifyEnabled = false
+            isDebuggable = true
+        }
+    }
+    
+    // Build performance optimizations
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
 
