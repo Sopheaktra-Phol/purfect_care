@@ -264,7 +264,62 @@ class NotificationService {
   }
 
   Future<void> cancelNotification(int id) async {
-    await _flutterLocalNotificationsPlugin.cancel(id);
+    try {
+      print('=== Cancelling notification ===');
+      print('Notification ID: $id');
+      await _flutterLocalNotificationsPlugin.cancel(id);
+      
+      // Verify cancellation
+      await Future.delayed(const Duration(milliseconds: 200));
+      final pending = await _flutterLocalNotificationsPlugin.pendingNotificationRequests();
+      final stillPending = pending.where((n) => n.id == id).toList();
+      if (stillPending.isEmpty) {
+        print('✓ Notification $id successfully cancelled');
+      } else {
+        print('⚠ WARNING: Notification $id still in pending list after cancellation');
+      }
+    } catch (e) {
+      print('Error cancelling notification $id: $e');
+      // Try to cancel anyway
+      try {
+        await _flutterLocalNotificationsPlugin.cancel(id);
+      } catch (e2) {
+        print('Failed to cancel notification $id on retry: $e2');
+      }
+    }
+  }
+
+  // Cancel notifications by title (useful if notification ID doesn't match)
+  Future<void> cancelNotificationsByTitle(String title) async {
+    try {
+      print('=== Cancelling notifications by title ===');
+      print('Title: $title');
+      final pending = await _flutterLocalNotificationsPlugin.pendingNotificationRequests();
+      final matchingNotifications = pending.where((n) => n.title == title).toList();
+      
+      if (matchingNotifications.isEmpty) {
+        print('No notifications found with title: $title');
+        return;
+      }
+      
+      print('Found ${matchingNotifications.length} notification(s) with title "$title"');
+      for (var notif in matchingNotifications) {
+        print('Cancelling notification ID: ${notif.id}, Title: ${notif.title}');
+        await _flutterLocalNotificationsPlugin.cancel(notif.id);
+      }
+      
+      // Verify cancellation
+      await Future.delayed(const Duration(milliseconds: 200));
+      final remaining = await _flutterLocalNotificationsPlugin.pendingNotificationRequests();
+      final stillPending = remaining.where((n) => n.title == title).toList();
+      if (stillPending.isEmpty) {
+        print('✓ All notifications with title "$title" successfully cancelled');
+      } else {
+        print('⚠ WARNING: ${stillPending.length} notification(s) with title "$title" still pending');
+      }
+    } catch (e) {
+      print('Error cancelling notifications by title "$title": $e');
+    }
   }
 
   Future<bool> requestPermissions() async {

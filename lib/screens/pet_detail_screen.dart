@@ -16,17 +16,19 @@ class PetDetailScreen extends StatelessWidget {
   final PetModel pet;
   const PetDetailScreen({super.key, required this.pet});
 
-  // Helper to format age (e.g., "1y 4m 11d")
+  // Helper to format age (e.g., "3 Months Old", "1 Years Old", "1 Year 1 Month Old")
   String _formatAge(int ageInMonths) {
     if (ageInMonths < 12) {
-      return '$ageInMonths m';
+      return '$ageInMonths ${ageInMonths == 1 ? 'Month' : 'Months'} Old';
     }
     final years = ageInMonths ~/ 12;
     final months = ageInMonths % 12;
     if (months == 0) {
-      return '${years}y';
+      return '$years ${years == 1 ? 'Year' : 'Years'} Old';
     }
-    return '${years}y ${months}m';
+    final yearText = years == 1 ? 'Year' : 'Years';
+    final monthText = months == 1 ? 'Month' : 'Months';
+    return '$years $yearText $months $monthText Old';
   }
 
   // Helper to format time ago (e.g., "Just now", "10mins ago", "2 days ago")
@@ -415,7 +417,7 @@ class PetDetailScreen extends StatelessWidget {
                         _InfoCard(
                           label: 'Weight',
                           value: currentPet.weight != null && currentPet.weight!.isNotEmpty 
-                              ? currentPet.weight! 
+                              ? '${currentPet.weight!} kg' 
                               : 'N/A',
                           icon: Icons.scale,
                           iconColor: Colors.green,
@@ -423,7 +425,7 @@ class PetDetailScreen extends StatelessWidget {
                         _InfoCard(
                           label: 'Height',
                           value: currentPet.height != null && currentPet.height!.isNotEmpty 
-                              ? currentPet.height! 
+                              ? '${currentPet.height!} cm' 
                               : 'N/A',
                           icon: Icons.straighten,
                           iconColor: Colors.blue,

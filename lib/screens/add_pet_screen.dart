@@ -215,7 +215,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                     initialValue: name,
                                     style: const TextStyle(
                                       fontFamily: 'Poppins',
-                                      fontSize: 28,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black,
                                     ),
@@ -223,7 +223,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                       hintText: 'Pet Name',
                                       hintStyle: TextStyle(
                                         fontFamily: 'Poppins',
-                                        fontSize: 28,
+                                        fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.grey,
                                       ),
@@ -267,14 +267,14 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     focusNode: focusNode,
                                         style: const TextStyle(
                                           fontFamily: 'Poppins',
-                                          fontSize: 18,
+                                          fontSize: 16,
                                           color: Colors.black,
                                         ),
                     decoration: InputDecoration(
                                           hintText: 'Breed',
                                           hintStyle: TextStyle(
                                             fontFamily: 'Poppins',
-                                            fontSize: 18,
+                                            fontSize: 16,
                                             color: Colors.grey[600],
                                           ),
                                           border: InputBorder.none,
@@ -388,12 +388,14 @@ class _AddPetScreenState extends State<AddPetScreen> {
                       
                       const SizedBox(height: 24),
                       
-                      // Stats boxes (Age, Weight, Height, Color)
+                      // Stats boxes (Age, Weight, Height, Breed)
                       Row(
                         children: [
                           Expanded(
                             child: _StatBox(
                               label: 'Age',
+                              icon: Icons.cake,
+                              iconColor: const Color(0xFFFB930B), // Orange
                               child: TextFormField(
                                 initialValue: age > 0 ? age.toString() : '',
                                 keyboardType: TextInputType.number,
@@ -404,7 +406,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                   color: Colors.black,
                                 ),
                                 decoration: const InputDecoration(
-                                  hintText: 'Months',
+                                  hintText: 'N/A',
                                   hintStyle: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 14,
@@ -422,6 +424,8 @@ class _AddPetScreenState extends State<AddPetScreen> {
                           Expanded(
                             child: _StatBox(
                               label: 'Weight',
+                              icon: Icons.scale,
+                              iconColor: Colors.green,
                               child: TextFormField(
                                 controller: _weightController,
                                 keyboardType: TextInputType.number,
@@ -432,7 +436,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                   color: Colors.black,
                                 ),
                                 decoration: const InputDecoration(
-                                  hintText: 'kg',
+                                  hintText: 'N/A',
                                   hintStyle: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 14,
@@ -450,6 +454,8 @@ class _AddPetScreenState extends State<AddPetScreen> {
                           Expanded(
                             child: _StatBox(
                               label: 'Height',
+                              icon: Icons.straighten,
+                              iconColor: Colors.blue,
                               child: TextFormField(
                                 controller: _heightController,
                                 keyboardType: TextInputType.number,
@@ -460,7 +466,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                   color: Colors.black,
                                 ),
                                 decoration: const InputDecoration(
-                                  hintText: 'cm',
+                                  hintText: 'N/A',
                                   hintStyle: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 14,
@@ -477,7 +483,9 @@ class _AddPetScreenState extends State<AddPetScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: _StatBox(
-                              label: 'Color',
+                              label: 'Breed',
+                              icon: Icons.pets,
+                              iconColor: Colors.purple,
                               child: TextFormField(
                                 controller: _colorController,
                                 style: const TextStyle(
@@ -487,7 +495,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                   color: Colors.black,
                                 ),
                                 decoration: const InputDecoration(
-                                  hintText: 'Color',
+                                  hintText: 'N/A',
                                   hintStyle: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 14,
@@ -749,33 +757,43 @@ class _AddPetScreenState extends State<AddPetScreen> {
 class _StatBox extends StatelessWidget {
   final String label;
   final Widget child;
+  final IconData icon;
+  final Color iconColor;
 
   const _StatBox({
     required this.label,
     required this.child,
+    required this.icon,
+    required this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9), // Light green background
+        color: const Color(0xFFFFE5D4).withOpacity(0.3), // Light peach background
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFC8E6C9), width: 1),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+          // Icon in white circular background
+          Container(
+            width: 56,
+            height: 56,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 28,
             ),
           ),
           const SizedBox(height: 12),
+          // Text field below
           child,
         ],
       ),

@@ -71,6 +71,15 @@ class ReminderProvider extends ChangeNotifier {
   }
 
   Future<void> addReminder(ReminderModel r, PetModel pet) async {
+    // Don't schedule notification if task is already completed
+    if (r.isCompleted) {
+      final id = await DatabaseService.addReminder(r);
+      r.id = id;
+      reminders.add(r);
+      notifyListeners();
+      return;
+    }
+    
     // Ensure permissions are granted
     final notificationService = NotificationService();
     final hasPermission = await notificationService.areNotificationsEnabled();
@@ -102,8 +111,32 @@ class ReminderProvider extends ChangeNotifier {
 
   Future<void> updateReminder(int id, ReminderModel r, PetModel pet) async {
     final old = reminders.firstWhere((e) => e.id == id);
+    final notificationService = NotificationService();
+    
+    // Always cancel the old notification if it exists
     if (old.notificationId != null) {
-      await NotificationService().cancelNotification(old.notificationId!);
+      print('Cancelling old notification ${old.notificationId} for reminder ${old.title}');
+      await notificationService.cancelNotification(old.notificationId!);
+    }
+    
+    // Don't schedule notification if task is completed
+    if (r.isCompleted) {
+      print('Task ${r.title} is completed - cancelling all related notifications');
+      // Cancel by stored ID first
+      if (old.notificationId != null) {
+        await notificationService.cancelNotification(old.notificationId!);
+      }
+      // Also try to cancel by title as a fallback (in case ID doesn't match)
+      await notificationService.cancelNotificationsByTitle(r.title);
+      
+      r.notificationId = null; // Clear notification ID for completed tasks
+      await DatabaseService.updateReminder(id, r);
+      final i = reminders.indexWhere((e) => e.id == id);
+      if (i >= 0) {
+        reminders[i] = r;
+        notifyListeners();
+      }
+      return;
     }
     
     // Ensure permissions are granted

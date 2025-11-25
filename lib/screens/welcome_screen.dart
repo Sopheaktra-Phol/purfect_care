@@ -119,13 +119,13 @@ class _PetRibbonsSection extends StatelessWidget {
       return Stack(
         clipBehavior: Clip.none,
         children: [
-        // Out-left strip - leftmost - Grey tabby cat
+        // Out-left strip - leftmost - Dog
         _PetRibbon(
           color: const Color(0xFFF1BFC9), // #f1bfc9
           leftOffset: -70,
           topOffset: -100,
           height: 320,
-          petIcon: Icons.pets,
+          petImagePath: 'assets/images/pets/dog.png',
           petBackgroundColor: const Color(0xFFF8BE7A), // #f8be7a
           petImageX: 45, // Center horizontally
           petImageY: 265, // Moved up by 20
@@ -133,13 +133,13 @@ class _PetRibbonsSection extends StatelessWidget {
           animationController: animationController,
         ),
         
-        // Strip to the left - Brown dog
+        // Strip to the left - Cat
         _PetRibbon(
           color: const Color(0xFFD7C0DE), // #d7c0de
           leftOffset: 40,
           topOffset: -100,
           height: 380,
-          petIcon: Icons.pets,
+          petImagePath: 'assets/images/pets/cat.png',
           petBackgroundColor: const Color(0xFFC0E3E7), // #c0e3e7
           petImageX: 45, // Center horizontally
           petImageY: 325, // Moved up by 20
@@ -147,13 +147,13 @@ class _PetRibbonsSection extends StatelessWidget {
           animationController: animationController,
         ),
         
-        // Strip 3 (middle) - Long - Brown and white rabbit
+        // Strip 3 (middle) - Long - Rabbit
         _PetRibbon(
           color: const Color(0xFFFDB568), // #fdb568
           leftOffset: 150,
           topOffset: -100,
           height: 440,
-          petIcon: Icons.pets,
+          petImagePath: 'assets/images/pets/rabbit.png',
           petBackgroundColor: const Color(0xFFFBEAD2), // #fbead2
           petImageX: 45, // Center horizontally
           petImageY: 385, // Moved up by 20
@@ -161,13 +161,13 @@ class _PetRibbonsSection extends StatelessWidget {
           animationController: animationController,
         ),
         
-        // Strip to the right - Blue and yellow macaw
+        // Strip to the right - Bird
         _PetRibbon(
           color: const Color(0xFFBFE3E6), // #bfe3e6
           leftOffset: 220,
           topOffset: -100,
           height: 320,
-          petIcon: Icons.pets,
+          petImagePath: 'assets/images/pets/bird.png',
           petBackgroundColor: const Color(0xFFD1C5DB), // #d1c5db
           petImageX: 45, // Center horizontally
           petImageY: 265, // Moved up by 20
@@ -175,13 +175,13 @@ class _PetRibbonsSection extends StatelessWidget {
           animationController: animationController,
         ),
         
-        // Out-right strip - rightmost - Black and white tuxedo cat
+        // Out-right strip - rightmost - Hamster
         _PetRibbon(
           color: const Color(0xFFFFC0C0), // #ffc0c0
           leftOffset: 295,
           topOffset: -100,
           height: 220,
-          petIcon: Icons.pets,
+          petImagePath: 'assets/images/pets/hamster.png',
           petBackgroundColor: const Color(0xFFFCBD80), // #fcbd80
           petImageX: 45, // Center horizontally
           petImageY: 165, // Moved up by 20
@@ -198,7 +198,7 @@ class _PetRibbon extends StatelessWidget {
   final double leftOffset;
   final double topOffset;
   final double height;
-  final IconData? petIcon;
+  final String? petImagePath;
   final Color? petBackgroundColor;
   final double? petImageX;
   final double? petImageY;
@@ -210,7 +210,7 @@ class _PetRibbon extends StatelessWidget {
     required this.leftOffset,
     required this.topOffset,
     required this.height,
-    this.petIcon,
+    this.petImagePath,
     this.petBackgroundColor,
     this.petImageX,
     this.petImageY,
@@ -282,7 +282,7 @@ class _PetRibbon extends StatelessWidget {
                     ),
                   ),
                   // Circular pet image at the end of the strip
-                  if (petIcon != null && petBackgroundColor != null && petImageX != null && petImageY != null)
+                  if (petImagePath != null && petBackgroundColor != null && petImageX != null && petImageY != null)
                     Positioned(
                       left: petImageX! - 35, // Center the 70x70 circle
                       top: petImageY! - 35,
@@ -297,10 +297,27 @@ class _PetRibbon extends StatelessWidget {
                               shape: BoxShape.circle,
                               color: petBackgroundColor,
                             ),
-                            child: Icon(
-                              petIcon,
-                              size: 45,
-                              color: Colors.white,
+                            child: ClipOval(
+                              child: Image.asset(
+                                petImagePath!,
+                                width: 70,
+                                height: 70,
+                                fit: BoxFit.cover,
+                                cacheWidth: 140,
+                                cacheHeight: 140,
+                                errorBuilder: (context, error, stackTrace) {
+                                  // Fallback to a simple icon if image doesn't exist
+                                  debugPrint('Error loading image: $petImagePath - $error');
+                                  return Container(
+                                    color: petBackgroundColor,
+                                    child: const Icon(
+                                      Icons.pets,
+                                      size: 45,
+                                      color: Colors.white,
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),

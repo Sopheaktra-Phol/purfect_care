@@ -40,6 +40,7 @@ flutter:
     enable-lldb-debugging: false
   assets:
     - assets/images/
+    - assets/images/pets/
     - assets/icons/
     - assets/lottie/
 
