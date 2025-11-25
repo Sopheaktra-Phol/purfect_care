@@ -18,7 +18,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1200),
     );
     _animationController.forward();
   }
@@ -143,7 +143,7 @@ class _PetRibbonsSection extends StatelessWidget {
           petBackgroundColor: const Color(0xFFC0E3E7), // #c0e3e7
           petImageX: 45, // Center horizontally
           petImageY: 325, // Moved up by 20
-          delay: 0,
+          delay: 100,
           animationController: animationController,
         ),
         
@@ -157,7 +157,7 @@ class _PetRibbonsSection extends StatelessWidget {
           petBackgroundColor: const Color(0xFFFBEAD2), // #fbead2
           petImageX: 45, // Center horizontally
           petImageY: 385, // Moved up by 20
-          delay: 0,
+          delay: 200,
           animationController: animationController,
         ),
         
@@ -171,7 +171,7 @@ class _PetRibbonsSection extends StatelessWidget {
           petBackgroundColor: const Color(0xFFD1C5DB), // #d1c5db
           petImageX: 45, // Center horizontally
           petImageY: 265, // Moved up by 20
-          delay: 0,
+          delay: 300,
           animationController: animationController,
         ),
         
@@ -185,7 +185,7 @@ class _PetRibbonsSection extends StatelessWidget {
           petBackgroundColor: const Color(0xFFFCBD80), // #fcbd80
           petImageX: 45, // Center horizontally
           petImageY: 165, // Moved up by 20
-          delay: 0,
+          delay: 400,
           animationController: animationController,
         ),
       ],
@@ -223,67 +223,91 @@ class _PetRibbon extends StatelessWidget {
     return AnimatedBuilder(
       animation: animationController,
       builder: (context, child) {
-        final animationValue = Curves.easeOut.transform(
-          ((animationController.value * 1000 - delay) / 500).clamp(0.0, 1.0),
-        );
+        // Calculate animation progress with delay
+        final totalDuration = animationController.duration!.inMilliseconds;
+        final delayMs = delay;
+        final animationProgress = ((animationController.value * totalDuration - delayMs) / 600).clamp(0.0, 1.0);
+        
+        // Strip animation: starts from top left (-200, -200) and moves to final position
+        final stripAnimation = Curves.easeOutCubic.transform(animationProgress);
+        final stripX = leftOffset + (1 - stripAnimation) * -200;
+        final stripY = topOffset + (1 - stripAnimation) * -200;
+        final stripOpacity = stripAnimation;
+        
+        // Icon animation: starts slightly after strip (delay + 200ms) and fades in
+        final iconDelay = delayMs + 200;
+        final iconProgress = ((animationController.value * totalDuration - iconDelay) / 400).clamp(0.0, 1.0);
+        final iconAnimation = Curves.easeOut.transform(iconProgress);
+        final iconOpacity = iconAnimation;
+        final iconScale = 0.5 + (iconAnimation * 0.5); // Scale from 0.5 to 1.0
+        
         return Positioned(
-          left: leftOffset + (1 - animationValue) * -200,
-          top: topOffset + (1 - animationValue) * -100,
-          child: Transform.rotate(
-            angle: -28 * 3.14159 / 180, // -28 degrees in radians (rotated more to the left)
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 90,
-                  height: height,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(60), // More rounded ends
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        offset: const Offset(0, 4),
-                        blurRadius: 12,
-                        spreadRadius: 0,
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        offset: const Offset(0, 2),
-                        blurRadius: 6,
-                        spreadRadius: 0,
-                      ),
-                    ],
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        color,
-                        color.withOpacity(0.85),
+          left: stripX,
+          top: stripY,
+          child: Opacity(
+            opacity: stripOpacity,
+            child: Transform.rotate(
+              angle: -28 * 3.14159 / 180, // -28 degrees in radians (rotated more to the left)
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 90,
+                    height: height,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(60), // More rounded ends
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          offset: const Offset(0, 4),
+                          blurRadius: 12,
+                          spreadRadius: 0,
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          offset: const Offset(0, 2),
+                          blurRadius: 6,
+                          spreadRadius: 0,
+                        ),
                       ],
-                    ),
-                  ),
-                ),
-                // Circular pet image at the end of the strip
-                if (petIcon != null && petBackgroundColor != null && petImageX != null && petImageY != null)
-                  Positioned(
-                    left: petImageX! - 35, // Center the 70x70 circle
-                    top: petImageY! - 35,
-                    child: Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: petBackgroundColor,
-                      ),
-                      child: Icon(
-                        petIcon,
-                        size: 45,
-                        color: Colors.white,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          color,
+                          color.withOpacity(0.85),
+                        ],
                       ),
                     ),
                   ),
-              ],
+                  // Circular pet image at the end of the strip
+                  if (petIcon != null && petBackgroundColor != null && petImageX != null && petImageY != null)
+                    Positioned(
+                      left: petImageX! - 35, // Center the 70x70 circle
+                      top: petImageY! - 35,
+                      child: Opacity(
+                        opacity: iconOpacity,
+                        child: Transform.scale(
+                          scale: iconScale,
+                          child: Container(
+                            width: 70,
+                            height: 70,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: petBackgroundColor,
+                            ),
+                            child: Icon(
+                              petIcon,
+                              size: 45,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         );
