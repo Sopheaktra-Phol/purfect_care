@@ -6,13 +6,15 @@ import 'providers/auth_provider.dart';
 import 'providers/pet_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/health_record_provider.dart';
+import 'providers/theme_provider.dart';
 import 'services/notification_service.dart';
 import 'services/database_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/welcome_screen.dart' show WelcomeScreen;
-import 'theme/app_theme.dart';
+import 'theme/light_theme.dart';
+import 'theme/dark_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,23 +52,30 @@ class PawfectCare extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => PetProvider()),
         ChangeNotifierProvider(create: (_) => ReminderProvider()),
         ChangeNotifierProvider(create: (_) => HealthRecordProvider()),
       ],
-      child: MaterialApp(
-        title: 'Purfect Care',
-        theme: AppTheme.lightTheme(),
-        home: const SplashWrapper(),
-        routes: {
-          '/login': (context) {
-            final isSignUp = ModalRoute.of(context)?.settings.arguments as bool? ?? false;
-            return LoginScreen(initialMode: isSignUp ? LoginMode.signUp : LoginMode.login);
-          },
-          '/home': (context) => const AuthWrapper(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return MaterialApp(
+            title: 'Purfect Care',
+            theme: LightTheme.getTheme(),
+            darkTheme: DarkTheme.getTheme(),
+            themeMode: themeProvider.themeMode,
+            home: const SplashWrapper(),
+            routes: {
+              '/login': (context) {
+                final isSignUp = ModalRoute.of(context)?.settings.arguments as bool? ?? false;
+                return LoginScreen(initialMode: isSignUp ? LoginMode.signUp : LoginMode.login);
+              },
+              '/home': (context) => const AuthWrapper(),
+            },
+            debugShowCheckedModeBanner: false,
+          );
         },
-        debugShowCheckedModeBanner: false,
       ),
     );
   }

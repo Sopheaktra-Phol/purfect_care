@@ -4,9 +4,6 @@ import 'package:purfect_care/services/database_service.dart';
 
 class PetProvider extends ChangeNotifier {
   List<PetModel> pets = [];
-  bool _isLoading = false;
-
-  bool get isLoading => _isLoading;
 
   void loadPets() {
     pets = DatabaseService.getAllPets();

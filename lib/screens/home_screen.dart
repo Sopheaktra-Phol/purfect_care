@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:purfect_care/providers/reminder_provider.dart';
 import '../providers/pet_provider.dart';
+import '../providers/theme_provider.dart';
+import '../theme/app_theme.dart';
 import '../widgets/pet_card.dart';
 import 'add_pet_screen.dart';
 import 'pet_detail_screen.dart';
@@ -58,10 +60,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
     final completedTodaysReminders = todaysReminders.where((r) => r.isCompleted).toList();
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF9F5), // Light beige background - matching theme
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFB930B), // Orange - matching theme
+        backgroundColor: isDark ? theme.colorScheme.surface : AppTheme.accentOrange,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.settings, color: Colors.white),
@@ -81,6 +86,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              return IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  themeProvider.toggleTheme();
+                },
+                tooltip: themeProvider.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.notifications, color: Colors.white),
             onPressed: () {
@@ -109,13 +128,13 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'My Pets',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
@@ -131,15 +150,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 16,
-                            color: Colors.grey[600],
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 24),
                       ElevatedButton(
                         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddPetScreen())),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFB930B), // Orange
-                            foregroundColor: Colors.white,
+                            backgroundColor: isDark ? theme.colorScheme.primary : AppTheme.accentOrange,
+                            foregroundColor: isDark ? theme.colorScheme.onPrimary : Colors.white,
                             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -191,8 +210,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddPetScreen())),
-        backgroundColor: const Color(0xFFFB930B), // Orange
-        foregroundColor: Colors.white,
+        backgroundColor: isDark ? theme.colorScheme.primary : AppTheme.accentOrange,
+        foregroundColor: isDark ? theme.colorScheme.onPrimary : Colors.white,
         elevation: 0,
         child: const Icon(Icons.add),
       ),

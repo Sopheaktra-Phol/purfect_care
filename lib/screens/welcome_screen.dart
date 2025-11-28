@@ -363,10 +363,10 @@ class _ContentSection extends StatelessWidget {
                   children: [
                     // Title
                     const Text(
-                      'Adopt your\nthe best friend',
+                      'Caring for your pet,\nOne reminder at a time.',
                       style: TextStyle(
                         fontFamily: 'Poppins',
-                        fontSize: 36,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                         height: 1.2,
@@ -375,7 +375,7 @@ class _ContentSection extends StatelessWidget {
                     const SizedBox(height: 16),
                     // Subtitle
                     Text(
-                      'When you adopt, you not only save a loving\ncompanion but also make space for others.',
+                      'Everything your pet needs\nright on time.',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 16,
@@ -428,7 +428,7 @@ class _ContentSection extends StatelessWidget {
                       color: Colors.grey[600],
                     ),
                     children: [
-                      const TextSpan(text: 'I already have an account ? '),
+                      const TextSpan(text: 'Already have an account ? '),
                       TextSpan(
                         text: 'Sign in',
                         style: TextStyle(

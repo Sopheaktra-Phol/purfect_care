@@ -4,9 +4,6 @@ import '../services/database_service.dart';
 
 class HealthRecordProvider extends ChangeNotifier {
   List<HealthRecordModel> healthRecords = [];
-  bool _isLoading = false;
-
-  bool get isLoading => _isLoading;
 
   void loadHealthRecords() {
     healthRecords = DatabaseService.getAllHealthRecords();

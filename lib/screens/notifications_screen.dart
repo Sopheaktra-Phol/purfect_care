@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:purfect_care/providers/reminder_provider.dart';
 import 'package:purfect_care/providers/pet_provider.dart';
 import 'package:purfect_care/models/pet_model.dart';
+import '../theme/app_theme.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -13,6 +14,16 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load reminders after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ReminderProvider>().loadReminders();
+      }
+    });
+  }
 
   // Helper to format time ago or scheduled time
   String _formatTimestamp(DateTime dateTime) {
@@ -97,11 +108,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final reminderProv = context.watch<ReminderProvider>();
     final petProv = context.watch<PetProvider>();
     
-    // Load reminders if not already loaded
-    if (reminderProv.reminders.isEmpty) {
-      reminderProv.loadReminders();
-    }
-    
     // Get only reminders that have already passed (notifications already sent)
     final now = DateTime.now();
     final pastReminders = reminderProv.reminders
@@ -111,10 +117,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     // Sort by time (most recent first)
     pastReminders.sort((a, b) => b.time.compareTo(a.time));
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF9F5), // Light beige background - matching theme
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFB930B), // Orange - matching theme
+        backgroundColor: isDark ? theme.colorScheme.surfaceVariant : AppTheme.accentOrange,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -140,8 +149,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _onRefresh,
-        color: const Color(0xFFFB930B), // Orange color for refresh indicator
-        backgroundColor: Colors.white,
+        color: isDark ? theme.colorScheme.primary : AppTheme.accentOrange,
+        backgroundColor: theme.cardColor,
         child: pastReminders.isEmpty
             ? SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh even when empty
@@ -156,7 +165,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           Icon(
                             Icons.notifications_none,
                             size: 80,
-                            color: Colors.grey[400],
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(height: 24),
                           Text(
@@ -165,7 +174,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               fontFamily: 'Poppins',
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey[700],
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -175,7 +184,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -184,7 +193,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 12,
-                              color: Colors.grey[500],
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -246,13 +255,14 @@ class _NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
-      color: Colors.white,
+      color: theme.cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: Colors.grey[200]!, width: 1),
+        side: BorderSide(color: theme.dividerColor, width: 1),
       ),
       child: InkWell(
         onTap: () {
@@ -293,11 +303,11 @@ class _NotificationTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color: Colors.black,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -326,7 +336,7 @@ class _NotificationTile extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -343,12 +353,12 @@ class _NotificationTile extends StatelessWidget {
                     timestamp,
                     style: TextStyle(
                       fontFamily: 'Poppins',
-                      color: Colors.grey[500],
+                      color: theme.colorScheme.onSurfaceVariant,
                       fontSize: 12,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+                  Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant, size: 20),
                 ],
               ),
             ],

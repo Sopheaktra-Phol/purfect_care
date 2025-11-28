@@ -1,18 +1,26 @@
-# purfect_care
+# Purfect Care
 
-A new Flutter project.
+A Flutter mobile application for managing pet care, including reminders, health records, and pet profiles.
+
+## 📚 Documentation
+
+Complete technical documentation is available in the [`docs/`](./docs/) folder:
+
+- **[Documentation Index](./docs/README.md)** - Start here for navigation
+- **[Technical Documentation](./docs/TECHNICAL_DOCUMENTATION.md)** - Complete technical reference
+- **[Quick Reference](./docs/QUICK_REFERENCE.md)** - Code patterns and examples
+- **[Architecture Guide](./docs/ARCHITECTURE.md)** - System architecture and design
+
+## Features
+
+- 🐾 Pet profile management
+- ⏰ Reminder scheduling with notifications
+- 📋 Health record tracking
+- 🌓 Light/Dark theme support
+- 📱 Offline-first architecture
+- 👤 Multi-user support
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# purfect_care
-# purfect_care
+This project uses Flutter. For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/).

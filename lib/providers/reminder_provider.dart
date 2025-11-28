@@ -6,9 +6,6 @@ import '../services/notification_service.dart';
 
 class ReminderProvider extends ChangeNotifier {
   List<ReminderModel> reminders = [];
-  bool _isLoading = false;
-
-  bool get isLoading => _isLoading;
 
   void loadReminders() {
     reminders = DatabaseService.getAllReminders();
@@ -113,23 +110,15 @@ class ReminderProvider extends ChangeNotifier {
     final old = reminders.firstWhere((e) => e.id == id);
     final notificationService = NotificationService();
     
-    // Always cancel the old notification if it exists
+    // Cancel old notification if it exists
     if (old.notificationId != null) {
-      print('Cancelling old notification ${old.notificationId} for reminder ${old.title}');
       await notificationService.cancelNotification(old.notificationId!);
     }
     
     // Don't schedule notification if task is completed
     if (r.isCompleted) {
-      print('Task ${r.title} is completed - cancelling all related notifications');
-      // Cancel by stored ID first
-      if (old.notificationId != null) {
-        await notificationService.cancelNotification(old.notificationId!);
-      }
-      // Also try to cancel by title as a fallback (in case ID doesn't match)
       await notificationService.cancelNotificationsByTitle(r.title);
-      
-      r.notificationId = null; // Clear notification ID for completed tasks
+      r.notificationId = null;
       await DatabaseService.updateReminder(id, r);
       final i = reminders.indexWhere((e) => e.id == id);
       if (i >= 0) {
@@ -140,7 +129,6 @@ class ReminderProvider extends ChangeNotifier {
     }
     
     // Ensure permissions are granted
-    final notificationService = NotificationService();
     final hasPermission = await notificationService.areNotificationsEnabled();
     if (!hasPermission) {
       await notificationService.requestPermissions();
@@ -148,27 +136,21 @@ class ReminderProvider extends ChangeNotifier {
     
     try {
       final notificationId = await notificationService.scheduleNotification(
-      petName: pet.name,
-      title: r.title,
-      scheduledDate: r.time,
-      repeat: r.repeat,
-    );
-    r.notificationId = notificationId;
-      await DatabaseService.updateReminder(id, r);
-      final i = reminders.indexWhere((e) => e.id == id);
-      if (i >= 0) {
-        reminders[i] = r;
-        notifyListeners();
-      }
+        petName: pet.name,
+        title: r.title,
+        scheduledDate: r.time,
+        repeat: r.repeat,
+      );
+      r.notificationId = notificationId;
     } catch (e) {
       print('Error updating reminder notification: $e');
-      // Still update the reminder even if notification fails
-      await DatabaseService.updateReminder(id, r);
+    }
+    
+    await DatabaseService.updateReminder(id, r);
     final i = reminders.indexWhere((e) => e.id == id);
-      if (i >= 0) {
-    reminders[i] = r;
-    notifyListeners();
-      }
+    if (i >= 0) {
+      reminders[i] = r;
+      notifyListeners();
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -8,11 +9,13 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF9F5), // Light beige background - matching theme
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFB930B), // Orange - matching theme
+        backgroundColor: isDark ? theme.colorScheme.surfaceVariant : AppTheme.accentOrange,
         elevation: 0,
         title: const Text(
           'Settings',
@@ -31,32 +34,32 @@ class SettingsScreen extends StatelessWidget {
           if (authProvider.user != null)
             Card(
               elevation: 0,
-              color: Colors.white,
+              color: theme.cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
-                side: BorderSide(color: Colors.grey[200]!, width: 1),
+                side: BorderSide(color: theme.dividerColor, width: 1),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Account',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'Email: ${authProvider.user!.email ?? "Guest User"}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 16,
-                        color: Colors.black,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     if (authProvider.user!.isAnonymous) ...[
@@ -66,7 +69,7 @@ class SettingsScreen extends StatelessWidget {
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 14,
-                          color: Colors.grey[600],
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -79,10 +82,10 @@ class SettingsScreen extends StatelessWidget {
           // Sign Out Button
           Card(
             elevation: 0,
-            color: Colors.white,
+            color: theme.cardColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
-              side: BorderSide(color: Colors.grey[200]!, width: 1),
+              side: BorderSide(color: theme.dividerColor, width: 1),
               ),
             child: InkWell(
               onTap: () async {
@@ -108,21 +111,21 @@ class SettingsScreen extends StatelessWidget {
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text(
+                        child: Text(
                           'Cancel',
                           style: TextStyle(
                             fontFamily: 'Poppins',
-                            color: Colors.grey,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text(
+                        child: Text(
                           'Sign Out',
                           style: TextStyle(
                             fontFamily: 'Poppins',
-                            color: Colors.red,
+                            color: theme.colorScheme.error,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -144,14 +147,14 @@ class SettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24.0),
                 child: Row(
                   children: [
-                    const Icon(Icons.logout, color: Colors.red),
+                    Icon(Icons.logout, color: theme.colorScheme.error),
                     const SizedBox(width: 16),
-                    const Text(
+                    Text(
                       'Sign Out',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 16,
-                        color: Colors.red,
+                        color: theme.colorScheme.error,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

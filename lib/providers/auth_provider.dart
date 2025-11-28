@@ -49,25 +49,17 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> signInWithEmail(String email, String password) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    // Validate email format
+  Future<bool> _validateAndAuthenticate(String email, String password) async {
     final emailError = EmailValidator.validateEmail(email);
     if (emailError != null) {
       _errorMessage = emailError;
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
 
-    // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
 
-    // Simple mock authentication - accept any valid email/password
-    // In a real app, you'd validate against a backend
     if (password.length < 6) {
       _errorMessage = 'Password must be at least 6 characters long.';
       _isLoading = false;
@@ -88,43 +80,18 @@ class AuthProvider extends ChangeNotifier {
     return true;
   }
 
+  Future<bool> signInWithEmail(String email, String password) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    return await _validateAndAuthenticate(email, password);
+  }
+
   Future<bool> signUpWithEmail(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
-
-    // Validate email format
-    final emailError = EmailValidator.validateEmail(email);
-    if (emailError != null) {
-      _errorMessage = emailError;
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    // Simple validation
-    if (password.length < 6) {
-      _errorMessage = 'Password must be at least 6 characters long.';
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-
-    // Mock account creation - always succeeds
-    _user = LocalUser(
-      uid: email.hashCode.abs().toString(),
-      email: email,
-      displayName: email.split('@')[0],
-      isAnonymous: false,
-    );
-    
-    await _saveLoginState(true, email: email);
-    _isLoading = false;
-    notifyListeners();
-    return true;
+    return await _validateAndAuthenticate(email, password);
   }
 
   Future<bool> signInWithGoogle() async {
@@ -199,10 +166,5 @@ class AuthProvider extends ChangeNotifier {
       await prefs.remove('userId');
       await prefs.remove('isAnonymous');
     }
-  }
-
-  Future<bool> checkLoginState() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('isLoggedIn') ?? false;
   }
 }

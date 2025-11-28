@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_init_service.dart';
 import '../models/pet_model.dart';
@@ -17,12 +15,10 @@ class FirebaseDatabaseService {
   // Lazy initialization to avoid errors if Firebase isn't initialized
   FirebaseFirestore? _firestore;
   FirebaseAuth? _auth;
-  FirebaseStorage? _storage;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   // Check if Firebase is initialized
   bool get _isFirebaseInitialized => Firebase.apps.isNotEmpty;
-  bool get isFirebaseInitialized => Firebase.apps.isNotEmpty; // Public getter
 
   // Lazy getters that check initialization
   FirebaseFirestore? get _firestoreInstance {
@@ -37,13 +33,6 @@ class FirebaseDatabaseService {
       return null;
     }
     return _auth ??= FirebaseAuth.instance;
-  }
-
-  FirebaseStorage? get _storageInstance {
-    if (!_isFirebaseInitialized) {
-      return null;
-    }
-    return _storage ??= FirebaseStorage.instance;
   }
 
   // Get current user ID
@@ -73,7 +62,6 @@ class FirebaseDatabaseService {
     // Reset instances to get fresh ones after initialization
     _firestore = null;
     _auth = null;
-    _storage = null;
     
     if (_authInstance == null) {
       print('Firebase Auth instance is null. Cannot sign in anonymously.');
@@ -114,7 +102,6 @@ class FirebaseDatabaseService {
     // Reset instances to get fresh ones after initialization
     _firestore = null;
     _auth = null;
-    _storage = null;
     
     if (_authInstance == null) {
       throw Exception('Firebase Auth instance is null. Cannot sign in.');
@@ -146,7 +133,6 @@ class FirebaseDatabaseService {
     // Reset instances to get fresh ones after initialization
     _firestore = null;
     _auth = null;
-    _storage = null;
     
     if (_authInstance == null) {
       throw Exception('Firebase Auth instance is null. Cannot create account.');
@@ -349,17 +335,6 @@ class FirebaseDatabaseService {
     }
   }
 
-  /// Stream pets (real-time updates)
-  Stream<List<PetModel>> streamPets() {
-    final collection = _getPetsCollection();
-    if (collection == null) {
-      return Stream.value([]);
-    }
-    return collection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => _petFromMap(doc.id, doc.data() as Map<String, dynamic>)).toList();
-    });
-  }
-
   // ============================================
   // REMINDERS
   // ============================================
@@ -477,17 +452,6 @@ class FirebaseDatabaseService {
     }
   }
 
-  /// Stream reminders (real-time updates)
-  Stream<List<ReminderModel>> streamReminders() {
-    final collection = _getRemindersCollection();
-    if (collection == null) {
-      return Stream.value([]);
-    }
-    return collection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => _reminderFromMap(doc.id, doc.data() as Map<String, dynamic>)).toList();
-    });
-  }
-
   // ============================================
   // HEALTH RECORDS
   // ============================================
@@ -602,60 +566,6 @@ class FirebaseDatabaseService {
     } catch (e) {
       print('Error deleting health record: $e');
       rethrow;
-    }
-  }
-
-  /// Stream health records (real-time updates)
-  Stream<List<HealthRecordModel>> streamHealthRecords() {
-    final collection = _getHealthRecordsCollection();
-    if (collection == null) {
-      return Stream.value([]);
-    }
-    return collection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => _healthRecordFromMap(doc.id, doc.data() as Map<String, dynamic>)).toList();
-    });
-  }
-
-  // ============================================
-  // STORAGE (Pet Images)
-  // ============================================
-
-  /// Upload pet image to Firebase Storage
-  Future<String?> uploadPetImage(File imageFile, String petId) async {
-    if (!_isFirebaseInitialized || _storageInstance == null) {
-      print('Firebase is not initialized. Cannot upload image.');
-      return null;
-    }
-    try {
-      final uid = userId;
-      if (uid == null) {
-        print('User not authenticated. Cannot upload image.');
-        return null;
-      }
-
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split('/').last}';
-      final ref = _storageInstance!.ref().child('pet_images').child(uid).child(petId).child(fileName);
-
-      await ref.putFile(imageFile);
-      final downloadUrl = await ref.getDownloadURL();
-      return downloadUrl;
-    } catch (e) {
-      print('Error uploading image: $e');
-      return null;
-    }
-  }
-
-  /// Delete pet image from Firebase Storage
-  Future<void> deletePetImage(String imageUrl) async {
-    if (!_isFirebaseInitialized || _storageInstance == null) {
-      print('Firebase is not initialized. Cannot delete image.');
-      return;
-    }
-    try {
-      final ref = _storageInstance!.refFromURL(imageUrl);
-      await ref.delete();
-    } catch (e) {
-      print('Error deleting image: $e');
     }
   }
 

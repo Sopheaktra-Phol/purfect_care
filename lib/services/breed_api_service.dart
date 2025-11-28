@@ -144,11 +144,5 @@ class BreedApiService {
         .where((breed) => breed.toLowerCase().contains(lowerQuery))
         .toList();
   }
-
-  /// Clear cache (useful for testing or refreshing)
-  void clearCache() {
-    _dogBreeds = null;
-    _catBreeds = null;
-  }
 }
 

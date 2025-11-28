@@ -71,14 +71,4 @@ class ImageService {
       return false;
     }
   }
-
-  /// Get a File object for an image path, or null if it doesn't exist
-  Future<File?> getImageFile(String? imagePath) async {
-    if (imagePath == null || imagePath.isEmpty) return null;
-    final file = File(imagePath);
-    if (await file.exists()) {
-      return file;
-    }
-    return null;
-  }
 }
