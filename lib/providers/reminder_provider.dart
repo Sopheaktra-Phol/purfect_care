@@ -1,15 +1,96 @@
 import 'package:flutter/material.dart';
 import '../models/pet_model.dart';
 import '../models/reminder_model.dart';
-import '../services/database_service.dart';
+import '../services/firestore_database_service.dart';
 import '../services/notification_service.dart';
 
 class ReminderProvider extends ChangeNotifier {
   List<ReminderModel> reminders = [];
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  void loadReminders() {
-    reminders = DatabaseService.getAllReminders();
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+
+  Future<void> loadReminders({List<PetModel>? pets}) async {
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
+
+    try {
+      reminders = await FirestoreDatabaseService.getAllReminders();
+      
+      // Clean up orphaned reminders (reminders for deleted pets)
+      if (pets != null) {
+        await _cleanupOrphanedReminders(pets);
+      }
+      
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = 'Failed to load reminders.';
+      print('Error loading reminders: $e');
+      reminders = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+  
+  /// Remove reminders that belong to deleted pets
+  Future<void> _cleanupOrphanedReminders(List<PetModel> pets) async {
+    // If there are no pets, delete all reminders
+    if (pets.isEmpty) {
+      print('🧹 No pets found, deleting all reminders');
+      final allReminders = List<ReminderModel>.from(reminders);
+      for (var reminder in allReminders) {
+        try {
+          if (reminder.id != null) {
+            // Cancel notification if exists
+            if (reminder.notificationId != null) {
+              await NotificationService().cancelNotification(reminder.notificationId!);
+            }
+            // Delete from Firestore
+            await FirestoreDatabaseService.deleteReminder(reminder.id!.toString());
+            print('✅ Deleted reminder: ${reminder.title} (petId: ${reminder.petId})');
+          }
+        } catch (e) {
+          print('⚠️ Error deleting reminder ${reminder.id}: $e');
+        }
+      }
+      reminders.clear();
+      print('🧹 Cleanup complete: All reminders removed (no pets)');
+      return;
+    }
+    
+    // Otherwise, only delete reminders for pets that don't exist
+    final petIds = pets.map((p) => p.id).where((id) => id != null).toSet();
+    final orphanedReminders = reminders.where((r) => !petIds.contains(r.petId)).toList();
+    
+    if (orphanedReminders.isEmpty) {
+      return; // No orphaned reminders
+    }
+    
+    print('🧹 Found ${orphanedReminders.length} orphaned reminders to delete');
+    
+    for (var reminder in orphanedReminders) {
+      try {
+        if (reminder.id != null) {
+          // Cancel notification if exists
+          if (reminder.notificationId != null) {
+            await NotificationService().cancelNotification(reminder.notificationId!);
+          }
+          // Delete from Firestore
+          await FirestoreDatabaseService.deleteReminder(reminder.id!.toString());
+          print('✅ Deleted orphaned reminder: ${reminder.title} (petId: ${reminder.petId})');
+        }
+      } catch (e) {
+        print('⚠️ Error deleting orphaned reminder ${reminder.id}: $e');
+      }
+    }
+    
+    // Remove from local list
+    reminders.removeWhere((r) => orphanedReminders.contains(r));
+    print('🧹 Cleanup complete: ${orphanedReminders.length} orphaned reminders removed');
   }
   
   // Reschedule all notifications - call this with pets list from outside
@@ -52,7 +133,7 @@ class ReminderProvider extends ChangeNotifier {
                 repeat: reminder.repeat,
               );
               reminder.notificationId = newNotificationId;
-              await DatabaseService.updateReminder(reminder.id!, reminder);
+              await FirestoreDatabaseService.updateReminder(reminder.id!.toString(), reminder);
               rescheduled++;
               print('✓ Rescheduled: ${reminder.title} for ${pet.name}');
             }
@@ -68,12 +149,24 @@ class ReminderProvider extends ChangeNotifier {
   }
 
   Future<void> addReminder(ReminderModel r, PetModel pet) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     // Don't schedule notification if task is already completed
     if (r.isCompleted) {
-      final id = await DatabaseService.addReminder(r);
-      r.id = id;
-      reminders.add(r);
-      notifyListeners();
+      try {
+        final id = await FirestoreDatabaseService.addReminder(r);
+        r.id = int.tryParse(id) ?? 0;
+        reminders.add(r);
+        _errorMessage = null;
+      } catch (e) {
+        _errorMessage = 'Failed to add reminder.';
+        print('Error adding reminder: $e');
+      } finally {
+        _isLoading = false;
+        notifyListeners();
+      }
       return;
     }
     
@@ -86,27 +179,39 @@ class ReminderProvider extends ChangeNotifier {
     
     try {
       final notificationId = await notificationService.scheduleNotification(
-      petName: pet.name,
-      title: r.title,
-      scheduledDate: r.time,
-      repeat: r.repeat,
-    );
-    r.notificationId = notificationId;
-      final id = await DatabaseService.addReminder(r);
-      r.id = id;
+        petName: pet.name,
+        title: r.title,
+        scheduledDate: r.time,
+        repeat: r.repeat,
+      );
+      r.notificationId = notificationId;
+      
+      final id = await FirestoreDatabaseService.addReminder(r);
+      r.id = int.tryParse(id) ?? 0;
       reminders.add(r);
-      notifyListeners();
+      _errorMessage = null;
     } catch (e) {
       print('Error adding reminder notification: $e');
       // Still save the reminder even if notification fails
-      final id = await DatabaseService.addReminder(r);
-    r.id = id;
-    reminders.add(r);
-    notifyListeners();
+      try {
+        final id = await FirestoreDatabaseService.addReminder(r);
+        r.id = int.tryParse(id) ?? 0;
+        reminders.add(r);
+      } catch (saveError) {
+        _errorMessage = 'Failed to add reminder.';
+        print('Error saving reminder: $saveError');
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
   Future<void> updateReminder(int id, ReminderModel r, PetModel pet) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     final old = reminders.firstWhere((e) => e.id == id);
     final notificationService = NotificationService();
     
@@ -119,10 +224,18 @@ class ReminderProvider extends ChangeNotifier {
     if (r.isCompleted) {
       await notificationService.cancelNotificationsByTitle(r.title);
       r.notificationId = null;
-      await DatabaseService.updateReminder(id, r);
-      final i = reminders.indexWhere((e) => e.id == id);
-      if (i >= 0) {
-        reminders[i] = r;
+      try {
+        await FirestoreDatabaseService.updateReminder(id.toString(), r);
+        final i = reminders.indexWhere((e) => e.id == id);
+        if (i >= 0) {
+          reminders[i] = r;
+          _errorMessage = null;
+        }
+      } catch (e) {
+        _errorMessage = 'Failed to update reminder.';
+        print('Error updating reminder: $e');
+      } finally {
+        _isLoading = false;
         notifyListeners();
       }
       return;
@@ -146,21 +259,41 @@ class ReminderProvider extends ChangeNotifier {
       print('Error updating reminder notification: $e');
     }
     
-    await DatabaseService.updateReminder(id, r);
-    final i = reminders.indexWhere((e) => e.id == id);
-    if (i >= 0) {
-      reminders[i] = r;
+    try {
+      await FirestoreDatabaseService.updateReminder(id.toString(), r);
+      final i = reminders.indexWhere((e) => e.id == id);
+      if (i >= 0) {
+        reminders[i] = r;
+        _errorMessage = null;
+      }
+    } catch (e) {
+      _errorMessage = 'Failed to update reminder.';
+      print('Error updating reminder: $e');
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
   Future<void> deleteReminder(int id) async {
-    final r = reminders.firstWhere((e) => e.id == id);
-    if (r.notificationId != null) {
-      await NotificationService().cancelNotification(r.notificationId!);
-    }
-    await DatabaseService.deleteReminder(id);
-    reminders.removeWhere((e) => e.id == id);
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
+
+    try {
+      final r = reminders.firstWhere((e) => e.id == id);
+      if (r.notificationId != null) {
+        await NotificationService().cancelNotification(r.notificationId!);
+      }
+      await FirestoreDatabaseService.deleteReminder(id.toString());
+      reminders.removeWhere((e) => e.id == id);
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = 'Failed to delete reminder.';
+      print('Error deleting reminder: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

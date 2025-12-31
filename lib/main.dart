@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/pet_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/health_record_provider.dart';
+import 'providers/weight_provider.dart';
+import 'providers/milestone_provider.dart';
+import 'providers/vaccination_provider.dart';
+import 'providers/photo_provider.dart';
+import 'providers/activity_provider.dart';
+import 'providers/expense_provider.dart';
 import 'providers/theme_provider.dart';
 import 'services/notification_service.dart';
 import 'services/database_service.dart';
+import 'services/firestore_database_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/splash_screen.dart';
@@ -18,18 +27,36 @@ import 'theme/dark_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Hive for local storage
+
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✓ Firebase initialized successfully');
+    
+    // Give Firebase a moment to fully establish platform channels
+    await Future.delayed(const Duration(milliseconds: 300));
+    
+    // Enable Firestore persistence
+    try {
+      FirestoreDatabaseService.enablePersistence();
+      print('✓ Firestore persistence configured');
+    } catch (e) {
+      print('⚠ Could not configure Firestore persistence: $e');
+    }
+  } catch (e) {
+    print('⚠ Firebase initialization error: $e');
+  }
+
   await Hive.initFlutter();
   await DatabaseService.init();
   
-  // Initialize notifications
+
   try {
     final notificationService = NotificationService();
     await notificationService.init();
-    
-    // Always request permissions explicitly after initialization
-    // This ensures the permission dialog appears on first launch
+
     await Future.delayed(const Duration(milliseconds: 500));
     print('=== Requesting notification permissions on app launch ===');
     final hasPermission = await notificationService.requestPermissions();
@@ -57,6 +84,12 @@ class PawfectCare extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PetProvider()),
         ChangeNotifierProvider(create: (_) => ReminderProvider()),
         ChangeNotifierProvider(create: (_) => HealthRecordProvider()),
+        ChangeNotifierProvider(create: (_) => WeightProvider()),
+        ChangeNotifierProvider(create: (_) => MilestoneProvider()),
+        ChangeNotifierProvider(create: (_) => VaccinationProvider()),
+        ChangeNotifierProvider(create: (_) => PhotoProvider()),
+        ChangeNotifierProvider(create: (_) => ActivityProvider()),
+        ChangeNotifierProvider(create: (_) => ExpenseProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
@@ -90,6 +123,7 @@ class SplashWrapper extends StatefulWidget {
 
 class _SplashWrapperState extends State<SplashWrapper> {
   bool _isInitialized = false;
+  bool _firebaseInitialized = false;
 
   @override
   void initState() {
@@ -101,16 +135,19 @@ class _SplashWrapperState extends State<SplashWrapper> {
     // Simulate minimum splash screen duration (2 seconds)
     await Future.delayed(const Duration(seconds: 2));
     
+    // Firebase is already initialized in main(), so mark as ready
     if (mounted) {
       setState(() {
         _isInitialized = true;
+        _firebaseInitialized = true;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_isInitialized) {
+    // Show splash screen until both initialization and Firebase are ready
+    if (!_isInitialized || !_firebaseInitialized) {
       return const SplashScreen();
     }
     
@@ -136,37 +173,35 @@ class _AuthWrapperState extends State<AuthWrapper> {
       builder: (context, authProvider, _) {
         final currentUserId = authProvider.user?.uid;
         
-        // Switch user context and reload data when user changes
+        // Load data from Firebase when user logs in
         if (authProvider.isAuthenticated && currentUserId != null && currentUserId != _lastUserId) {
           _lastUserId = currentUserId;
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             if (!mounted) return;
-            // Switch to user's data context
-            await DatabaseService.switchUser(currentUserId);
-            // Load data
+            // Load data from Firebase (Firebase handles user context automatically)
             if (!mounted) return;
-            context.read<PetProvider>().loadPets();
+            final petProv = context.read<PetProvider>();
+            await petProv.loadPets();
             if (!mounted) return;
-            context.read<ReminderProvider>().loadReminders();
+            // Load reminders and clean up orphaned ones
+            await context.read<ReminderProvider>().loadReminders(pets: petProv.pets);
             if (!mounted) return;
-            context.read<HealthRecordProvider>().loadHealthRecords();
+            await context.read<HealthRecordProvider>().loadHealthRecords();
           });
         } else if (!authProvider.isAuthenticated && _lastUserId != null) {
           // Clear data when user logs out
           _lastUserId = null;
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             if (!mounted) return;
-            await DatabaseService.clearCurrentUserData();
-            if (!mounted) return;
             final petProv = context.read<PetProvider>();
             final reminderProv = context.read<ReminderProvider>();
             final healthProv = context.read<HealthRecordProvider>();
-            petProv.pets.clear();
+            petProv.clearPets();
             reminderProv.reminders.clear();
             healthProv.healthRecords.clear();
-            petProv.loadPets();
-            reminderProv.loadReminders();
-            healthProv.loadHealthRecords();
+            petProv.notifyListeners();
+            reminderProv.notifyListeners();
+            healthProv.notifyListeners();
           });
         }
         

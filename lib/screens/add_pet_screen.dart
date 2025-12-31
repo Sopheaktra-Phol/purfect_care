@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:purfect_care/models/pet_model.dart';
 import 'package:purfect_care/providers/pet_provider.dart';
+import 'package:purfect_care/providers/auth_provider.dart';
 import 'package:purfect_care/services/image_service.dart';
 import 'package:purfect_care/services/breed_api_service.dart';
 import 'package:purfect_care/widgets/safe_image.dart';
@@ -34,6 +37,8 @@ class _AddPetScreenState extends State<AddPetScreen> {
   String weight = '';
   String height = '';
   String color = '';
+  DateTime? birthDate;
+  DateTime? adoptionDate;
 
   final ImageService _img = ImageService();
   final BreedApiService _breedApi = BreedApiService();
@@ -60,6 +65,8 @@ class _AddPetScreenState extends State<AddPetScreen> {
       weight = widget.pet!.weight ?? '';
       height = widget.pet!.height ?? '';
       color = widget.pet!.color ?? '';
+      birthDate = widget.pet!.birthDate;
+      adoptionDate = widget.pet!.adoptionDate;
       _breedController.text = breed;
       _notesController.text = notes ?? '';
       _weightController.text = weight;
@@ -103,20 +110,23 @@ class _AddPetScreenState extends State<AddPetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF9F5), // Light beige background
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFB930B), // Orange
+        backgroundColor: isDark ? theme.colorScheme.surface : const Color(0xFFFB930B),
         elevation: 0,
         title: Text(
           widget.pet == null ? 'Add Pet' : 'Edit Pet',
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Poppins',
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: isDark ? theme.colorScheme.onSurface : Colors.white,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: isDark ? theme.colorScheme.onSurface : Colors.white),
       ),
       body: Form(
           key: _form,
@@ -148,11 +158,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   imagePath: photoPath,
                         fit: BoxFit.cover,
                         placeholder: Container(
-                          color: Colors.grey[300],
-                          child: const Icon(
+                          color: theme.colorScheme.surfaceVariant ?? Colors.grey[300],
+                          child: Icon(
                             Icons.pets,
                             size: 100,
-                            color: Colors.grey,
+                            color: theme.colorScheme.onSurfaceVariant ?? Colors.grey,
                 ),
               ),
                       ),
@@ -186,9 +196,9 @@ class _AddPetScreenState extends State<AddPetScreen> {
             // Content section
             SliverToBoxAdapter(
               child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
@@ -199,9 +209,12 @@ class _AddPetScreenState extends State<AddPetScreen> {
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: theme.colorScheme.surfaceVariant ?? theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: Colors.grey[200]!, width: 1),
+                          border: Border.all(
+                            color: isDark ? theme.colorScheme.outline : Colors.grey[200]!,
+                            width: 1,
+                          ),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,19 +226,19 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                   // Name field
               TextFormField(
                                     initialValue: name,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontFamily: 'Poppins',
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black,
+                                      color: theme.colorScheme.onSurface,
                                     ),
-                                    decoration: const InputDecoration(
+                                    decoration: InputDecoration(
                                       hintText: 'Pet Name',
                                       hintStyle: TextStyle(
                                         fontFamily: 'Poppins',
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.grey,
+                                        color: theme.colorScheme.onSurfaceVariant,
                                       ),
                                       border: InputBorder.none,
                                       contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
@@ -265,17 +278,17 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   return TextFormField(
                     controller: textEditingController,
                     focusNode: focusNode,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontFamily: 'Poppins',
                                           fontSize: 16,
-                                          color: Colors.black,
+                                          color: theme.colorScheme.onSurface,
                                         ),
                     decoration: InputDecoration(
                                           hintText: 'Breed',
                                           hintStyle: TextStyle(
                                             fontFamily: 'Poppins',
                                             fontSize: 16,
-                                            color: Colors.grey[600],
+                                            color: theme.colorScheme.onSurfaceVariant,
                                           ),
                                           border: InputBorder.none,
                                           contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
@@ -372,15 +385,15 @@ class _AddPetScreenState extends State<AddPetScreen> {
                       // "About" Section
                       Row(
                         children: [
-                          const Icon(Icons.pets, color: Colors.black, size: 20),
+                          Icon(Icons.pets, color: theme.colorScheme.onSurface, size: 20),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'About',
                             style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                         ],
@@ -399,18 +412,18 @@ class _AddPetScreenState extends State<AddPetScreen> {
                               child: TextFormField(
                                 initialValue: age > 0 ? age.toString() : '',
                                 keyboardType: TextInputType.number,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black,
+                                  color: theme.colorScheme.onSurface,
                                 ),
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText: 'N/A',
                                   hintStyle: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 14,
-                                    color: Colors.grey,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -429,18 +442,18 @@ class _AddPetScreenState extends State<AddPetScreen> {
                               child: TextFormField(
                                 controller: _weightController,
                                 keyboardType: TextInputType.number,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black,
+                                  color: theme.colorScheme.onSurface,
                                 ),
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText: 'N/A',
                                   hintStyle: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 14,
-                                    color: Colors.grey,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -459,18 +472,18 @@ class _AddPetScreenState extends State<AddPetScreen> {
                               child: TextFormField(
                                 controller: _heightController,
                                 keyboardType: TextInputType.number,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black,
+                                  color: theme.colorScheme.onSurface,
                                 ),
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText: 'N/A',
                                   hintStyle: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 14,
-                                    color: Colors.grey,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -488,18 +501,18 @@ class _AddPetScreenState extends State<AddPetScreen> {
                               iconColor: Colors.purple,
                               child: TextFormField(
                                 controller: _colorController,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black,
+                                  color: theme.colorScheme.onSurface,
                                 ),
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText: 'N/A',
                                   hintStyle: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 14,
-                                    color: Colors.grey,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -517,15 +530,15 @@ class _AddPetScreenState extends State<AddPetScreen> {
                       // Personal Note Section
                       Row(
                         children: [
-                          const Icon(Icons.note, color: Colors.black, size: 20),
+                          Icon(Icons.note, color: theme.colorScheme.onSurface, size: 20),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'Personal Note',
                             style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                         ],
@@ -537,51 +550,142 @@ class _AddPetScreenState extends State<AddPetScreen> {
               TextFormField(
                         controller: _notesController,
                         maxLines: 3,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 16,
-                          color: Colors.black,
+                          color: theme.colorScheme.onSurface,
                         ),
                         decoration: InputDecoration(
                           hintText: 'Add a personal note about your pet...',
                           hintStyle: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 16,
-                            color: Colors.grey[600],
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                           filled: true,
-                          fillColor: const Color(0xFFF5F5F5),
+                          fillColor: isDark ? theme.colorScheme.surfaceVariant : const Color(0xFFF5F5F5),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                            borderSide: BorderSide(
+                              color: isDark ? theme.colorScheme.outline : Colors.grey[300]!,
+                              width: 1.5,
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                            borderSide: BorderSide(
+                              color: isDark ? theme.colorScheme.outline : Colors.grey[300]!,
+                              width: 1.5,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFFB930B), width: 2),
+                            borderSide: BorderSide(
+                              color: isDark ? theme.colorScheme.primary : const Color(0xFFFB930B),
+                              width: 2,
+                            ),
                           ),
                           contentPadding: const EdgeInsets.all(16),
                         ),
                 onSaved: (v) => notes = v,
               ),
                       
+                      const SizedBox(height: 16),
+                      
+                      // Birth Date
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.cake, color: theme.colorScheme.onSurface),
+                        title: Text(
+                          'Birth Date',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        subtitle: Text(
+                          birthDate != null
+                              ? '${birthDate!.day}/${birthDate!.month}/${birthDate!.year}'
+                              : 'Not set (optional)',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 14,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        trailing: Icon(Icons.calendar_today, color: theme.colorScheme.onSurfaceVariant),
+                        onTap: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: birthDate ?? DateTime.now().subtract(const Duration(days: 365)),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime.now(),
+                          );
+                          if (date != null) {
+                            setState(() => birthDate = date);
+                            // Calculate age from birth date
+                            final now = DateTime.now();
+                            final months = (now.year - date.year) * 12 + (now.month - date.month);
+                            age = months.clamp(0, 999);
+                          }
+                        },
+                      ),
+                      
+                      const SizedBox(height: 8),
+                      
+                      // Adoption Date
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.home, color: theme.colorScheme.onSurface),
+                        title: Text(
+                          'Adoption Date',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        subtitle: Text(
+                          adoptionDate != null
+                              ? '${adoptionDate!.day}/${adoptionDate!.month}/${adoptionDate!.year}'
+                              : 'Not set (optional)',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 14,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        trailing: Icon(Icons.calendar_today, color: theme.colorScheme.onSurfaceVariant),
+                        onTap: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: adoptionDate ?? DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime.now(),
+                          );
+                          if (date != null) {
+                            setState(() => adoptionDate = date);
+                          }
+                        },
+                      ),
+                      
                       const SizedBox(height: 32),
                       
                       // Species Section
                       Row(
                         children: [
-                          const Icon(Icons.category, color: Colors.black, size: 20),
+                          Icon(Icons.category, color: theme.colorScheme.onSurface, size: 20),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'Species',
                             style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                         ],
@@ -613,28 +717,37 @@ class _AddPetScreenState extends State<AddPetScreen> {
                           hintStyle: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 16,
-                            color: Colors.grey[600],
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                           filled: true,
-                          fillColor: const Color(0xFFF5F5F5),
+                          fillColor: isDark ? theme.colorScheme.surfaceVariant : const Color(0xFFF5F5F5),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                            borderSide: BorderSide(
+                              color: isDark ? theme.colorScheme.outline : Colors.grey[300]!,
+                              width: 1.5,
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                            borderSide: BorderSide(
+                              color: isDark ? theme.colorScheme.outline : Colors.grey[300]!,
+                              width: 1.5,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFFB930B), width: 2),
+                            borderSide: BorderSide(
+                              color: isDark ? theme.colorScheme.primary : const Color(0xFFFB930B),
+                              width: 2,
+                            ),
                           ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                         ),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 16,
-                          color: Colors.black,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       
@@ -643,31 +756,40 @@ class _AddPetScreenState extends State<AddPetScreen> {
                           padding: const EdgeInsets.only(top: 16),
                           child: TextFormField(
                             controller: _speciesOtherController,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 16,
-                              color: Colors.black,
+                              color: theme.colorScheme.onSurface,
                             ),
                             decoration: InputDecoration(
                               hintText: 'e.g., Bird, Rabbit, Hamster',
                               hintStyle: TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 16,
-                                color: Colors.grey[600],
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                               filled: true,
-                              fillColor: const Color(0xFFF5F5F5),
+                              fillColor: isDark ? theme.colorScheme.surfaceVariant : const Color(0xFFF5F5F5),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                                borderSide: BorderSide(
+                                  color: isDark ? theme.colorScheme.outline : Colors.grey[300]!,
+                                  width: 1.5,
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                                borderSide: BorderSide(
+                                  color: isDark ? theme.colorScheme.outline : Colors.grey[300]!,
+                                  width: 1.5,
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFFFB930B), width: 2),
+                                borderSide: BorderSide(
+                                  color: isDark ? theme.colorScheme.primary : const Color(0xFFFB930B),
+                                  width: 2,
+                                ),
                               ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                             ),
@@ -695,9 +817,69 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   if (!_form.currentState!.validate()) return;
                   _form.currentState!.save();
                   
-                  if (widget.pet != null && widget.pet!.photoPath != null && widget.pet!.photoPath != photoPath) {
-                    await _img.deleteImage(widget.pet!.photoPath);
+                  // Check if user is authenticated
+                  final authProvider = context.read<AuthProvider>();
+                  if (!authProvider.isAuthenticated) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please sign in to add pets.'),
+                        backgroundColor: Colors.red,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                    return;
                   }
+                  
+                  // Upload pet profile photo to Firebase Storage if a new photo was selected
+                  String? finalPhotoPath = photoPath;
+                  final currentPhotoPath = photoPath;
+                  if (currentPhotoPath != null && currentPhotoPath.isNotEmpty) {
+                    // Check if it's already a Firebase Storage URL (starts with http)
+                    if (!currentPhotoPath.startsWith('http')) {
+                      // It's a local file, upload it to Firebase Storage
+                      print('📤 Uploading pet profile photo to Firebase Storage...');
+                      
+                      // For new pets, use 'profile' as petId, for existing pets use their ID
+                      final petIdForUpload = widget.pet?.id?.toString() ?? 'profile';
+                      final uploadedUrl = await _img.uploadPhotoToFirebase(File(currentPhotoPath), petIdForUpload);
+                      
+                      if (uploadedUrl != null) {
+                        print('✅ Pet profile photo uploaded: $uploadedUrl');
+                        finalPhotoPath = uploadedUrl;
+                        // Delete local file after successful upload
+                        await _img.deleteImage(currentPhotoPath);
+                      } else {
+                        print('⚠️ Failed to upload pet profile photo, keeping local path');
+                        // Keep local path as fallback
+                      }
+                      
+                      // Delete old photo if updating
+                      if (widget.pet != null && widget.pet!.photoPath != null && widget.pet!.photoPath != photoPath) {
+                        // Check if old photo is a Firebase Storage URL
+                        if (widget.pet!.photoPath!.startsWith('http')) {
+                          await _img.deletePhotoFromFirebase(widget.pet!.photoPath!);
+                        } else {
+                          await _img.deleteImage(widget.pet!.photoPath!);
+                        }
+                      }
+                    } else {
+                      // Already a Firebase Storage URL, just delete old one if different
+                      if (widget.pet != null && widget.pet!.photoPath != null && widget.pet!.photoPath != photoPath) {
+                        await _img.deletePhotoFromFirebase(widget.pet!.photoPath!);
+                      }
+                    }
+                  } else if (widget.pet != null && widget.pet!.photoPath != null) {
+                    // Photo was removed, delete old one
+                    if (widget.pet!.photoPath!.startsWith('http')) {
+                      await _img.deletePhotoFromFirebase(widget.pet!.photoPath!);
+                    } else {
+                      await _img.deleteImage(widget.pet!.photoPath!);
+                    }
+                  }
+                  
+                  // If pet was just created, we need to re-upload the photo with the correct petId
+                  // This will be handled after the pet is saved and we have the pet ID
                   
                   final pet = PetModel(
                     id: widget.pet?.id,
@@ -706,28 +888,127 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     gender: gender,
                     age: age,
                     breed: breed,
-                    photoPath: photoPath,
+                    photoPath: finalPhotoPath,
                     notes: notes,
-                              weight: weight.isEmpty ? null : weight,
-                              height: height.isEmpty ? null : height,
-                              color: color.isEmpty ? null : color,
+                    weight: weight.isEmpty ? null : weight,
+                    height: height.isEmpty ? null : height,
+                    color: color.isEmpty ? null : color,
+                    birthDate: birthDate,
+                    adoptionDate: adoptionDate,
                   );
+                  print('📝 Pet model created with photoPath: ${pet.photoPath}');
+                  print('📝 finalPhotoPath value: $finalPhotoPath');
                   final provider = context.read<PetProvider>();
-                  if (widget.pet == null) {
-                    await provider.addPet(pet);
-                  } else {
-                    await provider.updatePet(widget.pet!.id!, pet);
-                  }
+                  
+                  // Show loading indicator with proper context reference
                   if (!mounted) return;
-                  Navigator.pop(context, pet);
+                  final navigator = Navigator.of(context);
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (dialogContext) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                  
+                  try {
+                    print('📝 Starting to save pet...');
+                    print('📝 Pet data: name=${pet.name}, species=${pet.species}, photoPath=${pet.photoPath}');
+                    
+                    if (widget.pet == null) {
+                      await provider.addPet(pet);
+                      print('📝 addPet completed, error: ${provider.errorMessage}');
+                      
+                      // If pet was just created and we have a local photo path, upload it now with the correct petId
+                      final currentFinalPhotoPathForReupload = finalPhotoPath;
+                      if (pet.id != null && currentFinalPhotoPathForReupload != null && !currentFinalPhotoPathForReupload.startsWith('http')) {
+                        print('📤 Re-uploading pet profile photo with correct pet ID: ${pet.id}');
+                        final uploadedUrl = await _img.uploadPhotoToFirebase(File(currentFinalPhotoPathForReupload), pet.id.toString());
+                        if (uploadedUrl != null) {
+                          print('✅ Pet profile photo re-uploaded: $uploadedUrl');
+                          // Update the pet with the Firebase Storage URL
+                          pet.photoPath = uploadedUrl;
+                          await provider.updatePet(pet.id!, pet);
+                          await _img.deleteImage(currentFinalPhotoPathForReupload);
+                        }
+                      }
+                    } else {
+                      // Updating existing pet
+                      if (widget.pet?.id != null) {
+                        await provider.updatePet(widget.pet!.id!, pet);
+                        print('📝 updatePet completed, error: ${provider.errorMessage}');
+                      } else {
+                        print('⚠️ Cannot update pet: widget.pet.id is null');
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Error: Pet ID is missing. Please try again.'),
+                            backgroundColor: Colors.red,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                        return;
+                      }
+                    }
+                    
+                    if (!mounted) return;
+                    
+                    // Close loading dialog FIRST
+                    navigator.pop();
+                    print('📝 Loading dialog closed');
+                    
+                    // Check for errors AFTER closing dialog
+                    if (provider.errorMessage != null) {
+                      print('❌ Provider has error: ${provider.errorMessage}');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(provider.errorMessage!),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                      return; // Don't navigate if there's an error
+                    }
+                    
+                    print('✅ Success! Navigating back...');
+                    // Success - navigate back
+                    navigator.pop();
+                  } catch (e, stackTrace) {
+                    print('❌ Exception in add pet screen: $e');
+                    print('❌ Stack trace: $stackTrace');
+                    
+                    if (!mounted) return;
+                    
+                    // Always close loading dialog, even on error
+                    if (navigator.canPop()) {
+                      navigator.pop();
+                    }
+                    
+                    // Show error message
+                    final errorMsg = provider.errorMessage ?? 
+                        (e.toString().contains('permission') 
+                            ? 'Permission denied. Please check Firebase security rules.'
+                            : 'Failed to save pet: ${e.toString()}');
+                    
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(errorMsg),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 5),
+                      ),
+                    );
+                  }
                 },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFB930B), // Orange
-                            foregroundColor: Colors.white,
+                            backgroundColor: isDark ? theme.colorScheme.primary : const Color(0xFFFB930B),
+                            foregroundColor: isDark ? theme.colorScheme.onPrimary : Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
-                              side: const BorderSide(color: Colors.black, width: 1.5),
+                              side: BorderSide(
+                                color: isDark ? theme.colorScheme.outline : Colors.black,
+                                width: 1.5,
+                              ),
                             ),
                             elevation: 0,
                           ),
@@ -769,10 +1050,15 @@ class _StatBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFE5D4).withOpacity(0.3), // Light peach background
+        color: isDark 
+            ? theme.colorScheme.surfaceVariant?.withOpacity(0.5) 
+            : const Color(0xFFFFE5D4).withOpacity(0.3),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -782,8 +1068,8 @@ class _StatBox extends StatelessWidget {
           Container(
             width: 56,
             height: 56,
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: isDark ? theme.colorScheme.surface : Colors.white,
               shape: BoxShape.circle,
             ),
             child: Icon(

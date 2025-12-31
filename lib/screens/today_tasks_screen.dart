@@ -24,6 +24,11 @@ class TodayTasksScreen extends StatelessWidget {
              r.time.day == now.day;
     }).toList();
     
+    // Filter out reminders for deleted pets (safety check)
+    todaysReminders = todaysReminders.where((r) {
+      return petProv.pets.any((p) => p.id == r.petId);
+    }).toList();
+    
     // Filter by pet if specified
     if (pet != null) {
       todaysReminders = todaysReminders.where((r) => r.petId == pet!.id).toList();

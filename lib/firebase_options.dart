@@ -50,19 +50,21 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyB4w46a-JRaRwLt_v2gct95LAGrYFYC0vE',
-    appId: '1:126123056507:android:764e3160d4b8b0a99cb1de',
-    messagingSenderId: '126123056507',
-    projectId: 'purfect-care',
-    storageBucket: 'purfect-care.firebasestorage.app',
+    apiKey: 'AIzaSyAECEj-mRzGaMExHS6rwePGGhIdAkb9YbY',
+    appId: '1:824805599296:android:48357fe33fce5e3000d7a5',
+    messagingSenderId: '824805599296',
+    projectId: 'purfect-care-e94d8',
+    storageBucket: 'purfect-care-e94d8.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBdcxAPXOgd9KtBv3w-TP3QBJtNKeDPMEg',
-    appId: '1:126123056507:ios:2383645e9e79122c9cb1de',
-    messagingSenderId: '126123056507',
-    projectId: 'purfect-care',
-    storageBucket: 'purfect-care.firebasestorage.app',
+    apiKey: 'AIzaSyD5EtRaHyaUpzEcRJ3Z8g7nS55HVAD2qVI',
+    appId: '1:824805599296:ios:e307fc91ba671e1500d7a5',
+    messagingSenderId: '824805599296',
+    projectId: 'purfect-care-e94d8',
+    storageBucket: 'purfect-care-e94d8.firebasestorage.app',
+    iosClientId: '824805599296-6sf7ocd135vkflkdmofbal7sc5svam0t.apps.googleusercontent.com',
     iosBundleId: 'com.nexuscasy.purfectcare',
   );
+
 }

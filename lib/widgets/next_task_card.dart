@@ -62,6 +62,32 @@ class NextTaskCard extends StatelessWidget {
     }
   }
 
+  // Helper to replace "due soon" with calculated days left
+  String _formatReminderTitle(String title, DateTime reminderTime) {
+    // Check if title contains "due soon" (case insensitive)
+    if (title.toLowerCase().contains('due soon')) {
+      // For vaccination reminders, the due date is 7 days after the reminder time
+      final dueDate = reminderTime.add(const Duration(days: 7));
+      final now = DateTime.now();
+      final daysLeft = dueDate.difference(now).inDays;
+      
+      String daysText;
+      if (daysLeft < 0) {
+        daysText = 'overdue';
+      } else if (daysLeft == 0) {
+        daysText = 'due today';
+      } else if (daysLeft == 1) {
+        daysText = 'due in 1 day';
+      } else {
+        daysText = 'due in $daysLeft days';
+      }
+      
+      // Replace "due soon" with the calculated days
+      return title.replaceAll(RegExp(r'due soon', caseSensitive: false), daysText);
+    }
+    return title;
+  }
+
   @override
   Widget build(BuildContext context) {
     final petProv = context.watch<PetProvider>();
@@ -72,7 +98,9 @@ class NextTaskCard extends StatelessWidget {
       // Pet not found
     }
 
-    final iconData = _getReminderIcon(reminder.title);
+    // Format title to replace "due soon" with calculated days
+    final formattedTitle = _formatReminderTitle(reminder.title, reminder.time);
+    final iconData = _getReminderIcon(formattedTitle);
     final timeText = _formatTimeInFuture(reminder.time);
 
     return Container(
@@ -138,7 +166,7 @@ class NextTaskCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       // Task title
                       Text(
-                        reminder.title,
+                        formattedTitle,
                         style: const TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 20,
@@ -157,13 +185,16 @@ class NextTaskCard extends StatelessWidget {
                               child: const Icon(Icons.pets, size: 12),
                             ),
                             const SizedBox(width: 6),
-                            Text(
-                              pet.name,
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[700],
+                            Flexible(
+                              child: Text(
+                                pet.name,
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[700],
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -183,13 +214,16 @@ class NextTaskCard extends StatelessWidget {
                             color: Colors.grey[600],
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            timeText,
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[700],
+                          Flexible(
+                            child: Text(
+                              timeText,
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],

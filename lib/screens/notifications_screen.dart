@@ -18,9 +18,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void initState() {
     super.initState();
     // Load reminders after the first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        context.read<ReminderProvider>().loadReminders();
+        final petProv = context.read<PetProvider>();
+        final reminderProv = context.read<ReminderProvider>();
+        // Ensure pets are loaded first
+        if (petProv.pets.isEmpty) {
+          await petProv.loadPets();
+        }
+        await reminderProv.loadReminders(pets: petProv.pets);
       }
     });
   }
@@ -96,8 +102,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final petProv = context.read<PetProvider>();
     
     // Reload both reminders and pets
-    reminderProv.loadReminders();
-    petProv.loadPets();
+    await petProv.loadPets();
+    await reminderProv.loadReminders(pets: petProv.pets);
     
     // Wait a bit to show the refresh animation
     await Future.delayed(const Duration(milliseconds: 500));

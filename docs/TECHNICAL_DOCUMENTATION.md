@@ -109,7 +109,7 @@
 - `DatabaseService.init()`: Registers model adapters
 - `NotificationService.init()`: Sets up notification channels
 
-#### `PawfectCare` Widget
+#### `PurfectCare` Widget
 - **Type**: StatelessWidget (root widget)
 - **Purpose**: Configures MaterialApp with providers and themes
 - **Providers Registered**:

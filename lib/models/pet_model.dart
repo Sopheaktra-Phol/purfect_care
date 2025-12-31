@@ -12,6 +12,8 @@ class PetModel {
   String? weight;
   String? height;
   String? color;
+  DateTime? birthDate;
+  DateTime? adoptionDate;
 
   PetModel({
     this.id,
@@ -25,6 +27,8 @@ class PetModel {
     this.weight,
     this.height,
     this.color,
+    this.birthDate,
+    this.adoptionDate,
   });
 }
 
@@ -48,6 +52,8 @@ class PetModelAdapter extends TypeAdapter<PetModel> {
       weight: map['weight'] as String?,
       height: map['height'] as String?,
       color: map['color'] as String?,
+      birthDate: map['birthDate'] != null ? DateTime.parse(map['birthDate'] as String) : null,
+      adoptionDate: map['adoptionDate'] != null ? DateTime.parse(map['adoptionDate'] as String) : null,
     );
   }
 
@@ -65,6 +71,8 @@ class PetModelAdapter extends TypeAdapter<PetModel> {
       'weight': obj.weight,
       'height': obj.height,
       'color': obj.color,
+      'birthDate': obj.birthDate?.toIso8601String(),
+      'adoptionDate': obj.adoptionDate?.toIso8601String(),
     });
   }
 }

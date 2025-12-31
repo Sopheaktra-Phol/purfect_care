@@ -81,16 +81,21 @@ class EmailValidator {
       return 'Email must include a domain (e.g., @gmail.com)';
     }
 
-    // Check for common typos
-    if (commonTypos.containsKey(domain)) {
-      final correctDomain = commonTypos[domain];
-      return 'Did you mean @$correctDomain? Please check your email domain spelling.';
-    }
+    // If domain is already a valid common domain, don't suggest it's a typo
+    if (commonDomains.contains(domain)) {
+      // Domain is valid, continue with other validations
+    } else {
+      // Check for common typos
+      if (commonTypos.containsKey(domain)) {
+        final correctDomain = commonTypos[domain];
+        return 'Did you mean @$correctDomain? Please check your email domain spelling.';
+      }
 
-    // Check if domain looks like a typo of common domains
-    final typoSuggestion = _checkForTypo(domain);
-    if (typoSuggestion != null) {
-      return 'Did you mean @$typoSuggestion? Please check your email domain spelling.';
+      // Check if domain looks like a typo of common domains
+      final typoSuggestion = _checkForTypo(domain);
+      if (typoSuggestion != null) {
+        return 'Did you mean @$typoSuggestion? Please check your email domain spelling.';
+      }
     }
 
     // Validate domain format
@@ -145,6 +150,12 @@ class EmailValidator {
 
   /// Checks if domain1 is likely a typo of domain2
   static bool _isTypo(String domain1, String domain2) {
+    // Don't suggest one valid common domain as a typo of another
+    // This prevents gmail.com and mail.com from being flagged as typos of each other
+    if (commonDomains.contains(domain1) && commonDomains.contains(domain2)) {
+      return false;
+    }
+
     // Same length, check for single character differences
     if (domain1.length == domain2.length) {
       int differences = 0;
@@ -154,13 +165,32 @@ class EmailValidator {
         }
       }
       // If only 1-2 characters differ, it's likely a typo
-      if (differences <= 2 && differences > 0) {
-        return true;
+      // But be more strict: require at least 3+ character difference for similar-length domains
+      // to avoid false positives between valid domains like gmail.com and mail.com
+      if (differences > 0 && differences <= 2 && domain1.length >= 8) {
+        // For longer domains, be more lenient only if it's a clear typo
+        // For shorter domains or when one is not a common domain, allow 1-2 differences
+        if (!commonDomains.contains(domain1)) {
+          return true;
+        }
       }
     }
 
     // Check for missing/extra characters (Levenshtein-like check)
+    // Only check if length difference is exactly 1, and be more careful
     if ((domain1.length - domain2.length).abs() == 1) {
+      // Don't suggest if one is a valid common domain and the other contains it
+      // This prevents mail.com from being suggested as typo of gmail.com
+      if (commonDomains.contains(domain1) || commonDomains.contains(domain2)) {
+        // If one is a common domain, only suggest if it's clearly a typo
+        // (e.g., missing a character at the end, not at the beginning)
+        final shorter = domain1.length < domain2.length ? domain1 : domain2;
+        final longer = domain1.length > domain2.length ? domain1 : domain2;
+        if (longer.endsWith(shorter) || longer.startsWith(shorter)) {
+          // One is a prefix or suffix of the other - likely not a typo if both are common
+          return false;
+        }
+      }
       // Check if one is substring of the other with one char difference
       if (domain2.contains(domain1) || domain1.contains(domain2)) {
         return true;

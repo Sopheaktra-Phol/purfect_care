@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:purfect_care/providers/reminder_provider.dart';
 import '../providers/pet_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/milestone_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/pet_card.dart';
+import '../widgets/milestone_card.dart';
 import 'add_pet_screen.dart';
 import 'pet_detail_screen.dart';
 import 'today_tasks_screen.dart';
 import 'settings_screen.dart';
 import 'notifications_screen.dart';
+import 'calendar_screen.dart';
+import 'search_screen.dart';
 import '../widgets/next_task_card.dart';
 import '../widgets/progress_tracker.dart';
 import '../services/notification_service.dart';
@@ -47,14 +52,38 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final petProv = context.watch<PetProvider>();
     final reminderProv = context.watch<ReminderProvider>();
+    final milestoneProv = context.watch<MilestoneProvider>();
     final now = DateTime.now();
-    // Get only incomplete upcoming reminders
-    final upcomingReminders = reminderProv.reminders.where((r) => 
+    
+    // Load milestones for all pets
+    if (petProv.pets.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        for (var pet in petProv.pets) {
+          if (pet.id != null) {
+            final milestones = milestoneProv.getMilestones(pet.id!);
+            if (milestones.isEmpty) {
+              milestoneProv.loadMilestones(pet.id!);
+            }
+          }
+        }
+      });
+    }
+    
+    // Get upcoming milestones (birthdays, adoption dates, etc.)
+    final upcomingMilestones = milestoneProv.getUpcomingMilestones(daysAhead: 30);
+    
+    // Filter out reminders for deleted pets (only show reminders for existing pets)
+    final validReminders = reminderProv.reminders.where((r) {
+      return petProv.pets.any((p) => p.id == r.petId);
+    }).toList();
+    
+    // Get only incomplete upcoming reminders (for existing pets only)
+    final upcomingReminders = validReminders.where((r) => 
       !r.isCompleted && r.time.isAfter(now)
     ).toList();
     upcomingReminders.sort((a, b) => a.time.compareTo(b.time));
     final nextReminder = upcomingReminders.isNotEmpty ? upcomingReminders.first : null;
-    final todaysReminders = reminderProv.reminders.where((r) {
+    final todaysReminders = validReminders.where((r) {
       final now = DateTime.now();
       return r.time.year == now.year && r.time.month == now.month && r.time.day == now.day;
     }).toList();
@@ -86,6 +115,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SearchScreen()),
+              );
+            },
+            tooltip: 'Search',
+          ),
           Consumer<ThemeProvider>(
             builder: (context, themeProvider, _) {
               return IconButton(
@@ -99,6 +138,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 tooltip: themeProvider.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
               );
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_today, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CalendarScreen()),
+              );
+            },
+            tooltip: 'Calendar',
           ),
           IconButton(
             icon: const Icon(Icons.notifications, color: Colors.white),
@@ -127,6 +176,44 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+          // Upcoming Birthdays & Milestones
+          if (upcomingMilestones.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Icon(Icons.cake, size: 20, color: theme.colorScheme.onSurface),
+                const SizedBox(width: 8),
+                Text(
+                  'Upcoming Milestones',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...upcomingMilestones.take(3).map((milestone) {
+              final pet = petProv.pets.firstWhere(
+                (p) => p.id == milestone.petId,
+                orElse: () => petProv.pets.first,
+              );
+              return MilestoneCard(
+                milestone: milestone,
+                pet: pet,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PetDetailScreen(pet: pet),
+                    ),
+                  );
+                },
+              );
+            }),
+          ],
           const SizedBox(height: 24),
           Text(
             'My Pets',

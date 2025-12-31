@@ -26,6 +26,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   bool _obscurePassword = true;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  bool _hasPerformedLoginAction = false; // Track if user has attempted to log in
+  String? _loginAttemptEmail; // Track which email was used for login attempt
+  String? _passwordError; // Track password-specific errors to show inline
 
   @override
   void initState() {
@@ -40,21 +43,36 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
     _animationController.forward();
     
-    // Listen to auth state changes and navigate when authenticated (for email/google login)
+    // Clear password error when user starts typing
+    _passwordController.addListener(() {
+      if (_passwordError != null) {
+        setState(() {
+          _passwordError = null;
+        });
+      }
+    });
+    
+    // Listen to auth state changes only after user explicitly logs in
+    // Don't auto-navigate on screen load - let user see the login screen even if cached session exists
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = context.read<AuthProvider>();
-      if (authProvider.isAuthenticated) {
-        _navigateToHome();
-      } else {
-        authProvider.addListener(_onAuthStateChanged);
-      }
+      // Only listen for auth changes after user action, not on initial load
+      authProvider.addListener(_onAuthStateChanged);
     });
   }
   
   void _onAuthStateChanged() {
+    // Check if widget is still mounted before accessing context
+    if (!mounted) return;
+    
     final authProvider = context.read<AuthProvider>();
-    // Only auto-navigate for non-guest users (email/google login)
-    if (authProvider.isAuthenticated && mounted && !authProvider.user!.isAnonymous) {
+    // Only auto-navigate after explicit successful login action
+    // Check that user is authenticated, not anonymous, and email matches the login attempt
+    if (_hasPerformedLoginAction && 
+        authProvider.isAuthenticated && 
+        !authProvider.user!.isAnonymous &&
+        _loginAttemptEmail != null &&
+        authProvider.user!.email?.toLowerCase() == _loginAttemptEmail!.toLowerCase()) {
       _navigateToHome();
     }
   }
@@ -72,10 +90,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   @override
   void dispose() {
     // Remove listener to prevent memory leaks
-    try {
-      context.read<AuthProvider>().removeListener(_onAuthStateChanged);
-    } catch (_) {
-      // Provider might already be disposed
+    // Check mounted before accessing context
+    if (mounted) {
+      try {
+        context.read<AuthProvider>().removeListener(_onAuthStateChanged);
+      } catch (_) {
+        // Provider might already be disposed or context is invalid
+      }
     }
     _animationController.dispose();
     _emailController.dispose();
@@ -84,47 +105,95 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   Future<void> _handleSubmit() async {
+    // Clear previous password error
+    setState(() {
+      _passwordError = null;
+    });
+    
     if (!_formKey.currentState!.validate()) return;
 
+    final email = _emailController.text.trim();
+    _loginAttemptEmail = email; // Store the email being used for login
+    _hasPerformedLoginAction = true; // Mark that user has attempted to log in
     final authProvider = context.read<AuthProvider>();
     bool success;
 
     if (_isLogin) {
       success = await authProvider.signInWithEmail(
-        _emailController.text.trim(),
+        email,
         _passwordController.text,
       );
     } else {
       success = await authProvider.signUpWithEmail(
-        _emailController.text.trim(),
+        email,
         _passwordController.text,
       );
     }
 
     if (success && mounted) {
+      // Clear password error on success
+      setState(() {
+        _passwordError = null;
+      });
       // Navigation will happen automatically via auth state listener
-    } else if (mounted && authProvider.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: AppTheme.accentRed,
-        ),
-      );
+      // The listener will verify the email matches before navigating
+    } else if (mounted) {
+      // Reset login action flag on failure to prevent navigation from cached sessions
+      _hasPerformedLoginAction = false;
+      _loginAttemptEmail = null;
+      
+      // Check if error is password-related
+      final errorMessage = authProvider.errorMessage;
+      if (errorMessage != null) {
+        // Check if it's a password-related error
+        final lowerError = errorMessage.toLowerCase();
+        if (lowerError.contains('password') || 
+            lowerError.contains('wrong-password') ||
+            lowerError.contains('incorrect password') ||
+            lowerError.contains('invalid credential')) {
+          // Set password error to show inline
+          setState(() {
+            _passwordError = 'Incorrect password';
+          });
+          // Trigger form validation to show the error
+          _formKey.currentState?.validate();
+        } else {
+          // For other errors (email not found, etc.), show snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: AppTheme.accentRed,
+            ),
+          );
+        }
+      }
     }
   }
 
   Future<void> _handleGoogleSignIn() async {
+    _hasPerformedLoginAction = true; // Mark that user has attempted to log in
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.signInWithGoogle();
     
-    if (!success && mounted && authProvider.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: AppTheme.accentRed,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+    if (success && mounted) {
+      // Store the email for verification in auth state listener
+      if (authProvider.user?.email != null) {
+        _loginAttemptEmail = authProvider.user!.email;
+      }
+      // Navigation will happen automatically via auth state listener
+    } else if (mounted) {
+      // Reset login action flag on failure
+      _hasPerformedLoginAction = false;
+      _loginAttemptEmail = null;
+      if (authProvider.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authProvider.errorMessage!),
+            backgroundColor: AppTheme.accentRed,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -268,6 +337,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               TextFormField(
                                 controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
+                                autocorrect: false,
+                                enableSuggestions: false,
                                 style: const TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 16,
@@ -326,20 +397,53 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                                    borderSide: BorderSide(
+                                      color: _passwordError != null ? AppTheme.accentRed : Colors.grey[300]!,
+                                      width: 1.5,
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                                    borderSide: BorderSide(
+                                      color: _passwordError != null ? AppTheme.accentRed : Colors.grey[300]!,
+                                      width: 1.5,
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: Color(0xFFFB930B), width: 2),
+                                    borderSide: BorderSide(
+                                      color: _passwordError != null ? AppTheme.accentRed : const Color(0xFFFB930B),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppTheme.accentRed,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppTheme.accentRed,
+                                      width: 2,
+                                    ),
                                   ),
                                   filled: true,
                                   fillColor: const Color(0xFFF5F5F5),
+                                  errorText: _passwordError,
+                                  errorStyle: const TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 14,
+                                    color: AppTheme.accentRed,
+                                  ),
                                 ),
                                 validator: (value) {
+                                  // Show custom password error if set
+                                  if (_passwordError != null) {
+                                    return _passwordError;
+                                  }
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter your password';
                                   }

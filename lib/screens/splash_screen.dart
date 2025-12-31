@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
+// Loading screen that shows when the app starts
 class SplashScreen extends StatefulWidget {
-  final Widget? child;
+  final Widget? child; // Not used right now, but keeping it for future
   
   const SplashScreen({super.key, this.child});
 
@@ -17,10 +18,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
+    // Fade in animation - takes 1.5 seconds
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
+    // Goes from invisible (0) to fully visible (1)
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeIn),
     );
@@ -43,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Loading image
+              // Loading image - fallback to pet icon if it doesn't load
               Image.asset(
                 'assets/images/loading.png',
                 width: 200,
@@ -58,7 +61,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 },
               ),
               const SizedBox(height: 40),
-              // Animated loading text
               _AnimatedLoadingText(),
             ],
           ),
@@ -68,6 +70,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 }
 
+// Shows "loading..." with dots that cycle through 1, 2, 3
 class _AnimatedLoadingText extends StatefulWidget {
   @override
   State<_AnimatedLoadingText> createState() => _AnimatedLoadingTextState();
@@ -80,6 +83,7 @@ class _AnimatedLoadingTextState extends State<_AnimatedLoadingText>
   @override
   void initState() {
     super.initState();
+    // Loop every 1.2 seconds
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -97,15 +101,16 @@ class _AnimatedLoadingTextState extends State<_AnimatedLoadingText>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        // Create animated dots (1, 2, or 3 dots)
         final progress = _controller.value;
+        
+        // Split the animation into 3 parts to show different dot counts
         int dotCount = 1;
         if (progress < 0.33) {
-          dotCount = 1;
+          dotCount = 1; // loading.
         } else if (progress < 0.66) {
-          dotCount = 2;
+          dotCount = 2; // loading..
         } else {
-          dotCount = 3;
+          dotCount = 3; // loading...
         }
 
         return Text(
